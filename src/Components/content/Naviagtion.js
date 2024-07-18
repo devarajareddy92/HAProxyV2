@@ -24,10 +24,15 @@ import GlobalContainer from '../Global/GlobalContainer';
 import Default from '../Global/Default';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import FrontendConfig from '../Global/Frontend';
+import Stats from '../Global/Stats';
+import Backend from '../Global/Backend';
+import AclComponent from '../Global/AclComponent';
+import SwitchingRulesComponent from '../Global/SwitchingRules';
+import HomePage from '../Global/HomePage';
 
 
 const Naviagtion = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isNavbarOpen, setNavbarOpen] = useState(false);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const toggleSidebar = () => {
@@ -133,11 +138,11 @@ const Naviagtion = () => {
           <Button type="primary" onClick={toggleSidebar}>
             <FontAwesomeIcon icon={faAlignLeft} />
           </Button>
-          <div className="navbar-logo">HAPROXY CONFIG MANAGER</div>
+          <div className="navbar-logo" style={{ paddingLeft: '20px' }}>HAPROXY CONFIG MANAGER</div>
           <div className={`navbar-links ${isNavbarOpen ? 'active' : ''}`}>
-            <a href="#home">Home</a>
+            <a href="/">Home</a>
             <a href="#status">Status</a>
-            <a href="#logout">Logout</a>
+            <a style={{ paddingRight: "40px" }} href="">Logout</a>
           </div>
           <div className="navbar-toggle" onClick={toggleNavbar}>
             <FontAwesomeIcon icon={isNavbarOpen ? faTimes : faBars} className="navbar-toggle-icon" />
@@ -148,10 +153,24 @@ const Naviagtion = () => {
 
           {window.location.href.includes("global") ?
             <GlobalContainer />
-            :
-            <Default />
-          
-            }
+            : window.location.href.includes("frontend") ?
+              <FrontendConfig />
+              : window.location.href.includes("default") ?
+                < Default />
+                :
+                window.location.href.includes("stats") ?
+                  <Stats />
+                  : window.location.href.includes("backend") ?
+                    <Backend />
+                    : window.location.href.includes("acl") ?
+                      <AclComponent />
+                      : window.location.href.includes("switchingrules") ?
+                        <SwitchingRulesComponent />
+                        : window.location.href.includes("/") ?
+                          <HomePage />
+
+                          : null
+          }
 
         </div>
       </div>

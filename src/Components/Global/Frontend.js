@@ -1,300 +1,47 @@
-// import React, { useState, useEffect } from 'react';
-// import { Select, Input, Checkbox, Divider, Tooltip, Button } from 'antd';
-// // import './App.css'; 
-
-// const { Option } = Select;
-
-// const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
-//     const [selectedFrontend, setSelectedFrontend] = useState({});
-//     const [compressionTypes, setCompressionTypes] = useState(new Set());
-//     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-
-//     useEffect(() => {
-//         // Update the screen width whenever the window is resized
-//         const handleResize = () => {
-//             setScreenWidth(window.innerWidth);
-//         };
-//         window.addEventListener('resize', handleResize);
-//         // Clean up the event listener when the component unmounts
-//         return () => {
-//             window.removeEventListener('resize', handleResize);
-//         };
-//     }, []);
-
-//     //   useEffect(() => {
-//     //     const frontend = jsonData.find((x) => x.frontend.name === 'f_new');
-//     //     if (frontend) {
-//     //       setSelectedFrontend(frontend.frontend);
-//     //     }
-//     //   }, [jsonData]);
-
-//     //   const handleNameChange = (event) => {
-//     //     const { value } = event.target;
-//     //     setSelectedFrontend((prev) => ({ ...prev, name: value }));
-//     //     const index = jsonData.findIndex((x) => x.frontend.name === 'f_new');
-//     //     if (index !== -1) {
-//     //       secondnewJsonData[index].data.name = value;
-//     //     }
-//     //   };
-
-//     //   const handleBackendChange = (value) => {
-//     //     setSelectedFrontend((prev) => ({ ...prev, default_backend: value }));
-//     //     const index = jsonData.findIndex((x) => x.frontend.name === 'f_new');
-//     //     if (index !== -1) {
-//     //       secondnewJsonData[index].data.default_backend = value;
-//     //     }
-//     //   };
-
-//     //   const handleCompressionChange = (value) => {
-//     //     const index = jsonData.findIndex((x) => x.frontend.name === 'f_new');
-//     //     if (index !== -1) {
-//     //       if (value === 'Yes') {
-//     //         secondnewJsonData[index].data.compression = { algorithms: [], types: [] };
-//     //       } else {
-//     //         delete secondnewJsonData[index].data.compression;
-//     //       }
-//     //     }
-//     //   };
-
-//     //   const handleCompressionAlgoChange = (value) => {
-//     //     const index = jsonData.findIndex((x) => x.frontend.name === 'f_new');
-//     //     if (index !== -1) {
-//     //       if (!secondnewJsonData[index].data.compression) {
-//     //         secondnewJsonData[index].data.compression = { algorithms: [], types: [] };
-//     //       }
-//     //       secondnewJsonData[index].data.compression.algorithms[0] = value;
-//     //     }
-//     //   };
-
-//     //   const handleCompressionTypeChange = (type, checked) => {
-//     //     const index = jsonData.findIndex((x) => x.frontend.name === 'f_new');
-//     //     if (index !== -1) {
-//     //       const newTypes = new Set(compressionTypes);
-//     //       if (checked) {
-//     //         newTypes.add(type);
-//     //       } else {
-//     //         newTypes.delete(type);
-//     //       }
-//     //       setCompressionTypes(newTypes);
-//     //       secondnewJsonData[index].data.compression.types = Array.from(newTypes);
-//     //     }
-//     //   };
-//     const columns = [
-//         {
-//             title: 'Bind Address',
-//             dataIndex: 'address',
-//             render: (text, record, index) => (
-//                 <Input
-//                     value={text}
-//                     onChange={e => handleInputChange(e.target.value, record.i, index, 'address')}
-//                     className="aclnewInput"
-//                 />
-//             )
-//         },
-//         {
-//             title: 'Bind Name',
-//             dataIndex: 'name',
-//             render: (text, record, index) => (
-//                 <Input
-//                     value={text}
-//                     onChange={e => handleInputChange(e.target.value, record.i, index, 'name')}
-//                     className="aclnewInput"
-//                 />
-//             )
-//         },
-//         {
-//             title: 'Bind Port',
-//             dataIndex: 'port',
-//             render: (text, record, index) => (
-//                 <Input
-//                     value={text}
-//                     onChange={e => handleInputChange(e.target.value, record.i, index, 'port')}
-//                     className="aclnewInput"
-//                 />
-//             )
-//         },
-//         {
-//             title: 'SSL Certificate Details',
-//             dataIndex: 'ssl_certificate',
-//             render: (text, record, index) => (
-//                 <>
-//                     <Checkbox
-//                         checked={record.ssl}
-//                         onChange={e => handleCheckboxChange(e.target.checked, record.i, index)}
-//                         disabled={record.protocol !== 'http'}
-//                     />
-//                     <Input
-//                         value={text}
-//                         onChange={e => handleCertificateChange(e.target.value, record.i, index)}
-//                         className="ssl-certificate-input"
-//                         disabled={!record.ssl}
-//                         placeholder="Enter the path"
-//                     />
-//                 </>
-//             )
-//         },
-//         {
-//             title: 'Action',
-//             render: (text, record, index) => (
-//                 <Button
-//                     type="danger"
-//                     icon={<DeleteOutlined />}
-//                     onClick={() => handleDelete(record.i, index)}
-//                 />
-//             )
-//         }
-//     ];
-//     return (
-//         <div>
-//             <Divider />
-//             <div style={{ display: 'flex', marginBottom: '20px' }}>
-//                 <div style={{ flex: 1 }}>
-//                     <label>Frontend Name:</label>
-//                     <Input
-//                         value={selectedFrontend.name || ''}
-//                         // onChange={handleNameChange}
-//                         disabled
-//                     />
-//                 </div>
-//                 <div style={{ flex: 1, marginLeft: '20px' }}>
-//                     <label>Default Backend:</label>
-//                     <Select
-//                         value={selectedFrontend.default_backend || 'Select'}
-//                         // onChange={handleBackendChange}
-//                         style={{ width: '100%' }}
-//                     >
-//                         <Option value="Select">Select</Option>
-//                         {/* {jsonData1.map((optionData, index) => (
-//               <Option key={index} value={optionData}>
-//                 {optionData}
-//               </Option>
-//             ))} */}
-//                     </Select>
-//                 </div>
-//             </div>
-
-//             <Divider />
-//             <div style={{ display: 'flex', marginBottom: '20px' }}>
-//                 <div style={{ flex: 1 }}>
-//                     <Tooltip title="Enables compression for responses sent to clients, reducing bandwidth usage. Note: Applicable only for HTTP">
-//                         <label>Compression:</label>
-//                     </Tooltip>
-//                     <Select
-//                         // value={selectedFrontend.compression ? 'Yes' : 'No'}
-//                         // onChange={handleCompressionChange}
-//                         style={{ width: '100%' }}
-//                     >
-//                         <Option value="Select Option">Select Option</Option>
-//                         <Option value="Yes">Yes</Option>
-//                         <Option value="No">No</Option>
-//                     </Select>
-//                 </div>
-//                 <div style={{ flex: 1, marginLeft: '20px' }}>
-//                     <label>Compression Algo:</label>
-//                     <Select
-//                         value={selectedFrontend.compression?.algorithms[0] || ''}
-//                         // onChange={handleCompressionAlgoChange}
-//                         // style={{ width: '100%' }}
-//                         style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
-//                     >
-//                         <Option value="">Select Option</Option>
-//                         <Option value="gzip">gzip</Option>
-//                         <Option value="deflate">deflate</Option>
-//                         <Option value="raw-deflate">raw-deflate</Option>
-//                     </Select>
-//                 </div>
-//             </div>
-
-//             <Divider />
-//             <div style={{ marginBottom: '20px' }}>
-//                 <label>Compression Type:</label>
-//                 {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
-//                     <Checkbox
-//                         key={type}
-//                         checked={compressionTypes.has(type)}
-//                     // onChange={(e) => handleCompressionTypeChange(type, e.target.checked)}
-//                     >
-//                         {type}
-//                     </Checkbox>
-//                 ))}
-//             </div>
-
-//             <Divider />
-//             <div style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}  >
-//                 <div style={{ flex: 1 }}>
-//                     <label>Mode:</label>
-//                     <Select
-//                         value={selectedFrontend.mode || ''}
-//                         onChange={(value) => setSelectedFrontend((prev) => ({ ...prev, mode: value }))}
-//                         style={{ width: '100%' }}
-//                     >
-//                         <Option value="HTTP">HTTP</Option>
-//                         <Option value="TCP">TCP</Option>
-//                     </Select>
-//                 </div>
-//             </div>
-//             <div>
-//       {/* {data.map((item, i) => ( */}
-//         <div key={i} style={{ marginBottom: '20px' }}>
-//           <div style={{ display: 'flex', marginTop: '2%', marginLeft: '11%' }}>
-//             <div className="https-label">
-//               <Tooltip title="HTTP to HTTPS redirection">
-//                 <label className="frontendLabel showInfo">HTTPS Redirection:</label>
-//               </Tooltip>
-//             </div>
-//             <div>
-//               <Select
-//                 // value={item.http_redirect}
-//                 // onChange={value => handleRedirectChange(value, i)}
-//                 className="sslnewInput"
-//               >
-//                 <Option value="">Select Option</Option>
-//                 <Option value={true}>True</Option>
-//                 <Option value={false}>False</Option>
-//               </Select>
-//             </div>
-//           </div>
-//           <Table
-//             dataSource={item.bind}
-//             columns={columns}
-//             rowKey="address"
-//             pagination={false}
-//             className="table"
-//           />
-//         </div>
-//       ))}
-//     </div>
-
-
-//         </div>
-//     );
-// };
-
-// export default FrontendConfig;
-
-
 import React, { useState, useEffect } from 'react';
-import { Select, Input, Checkbox, Divider, Tooltip, Button, Table } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { Select, Input,Form, Checkbox, Divider, Tooltip, Button, Table } from 'antd';
+import { PlusCircleFilled, MinusCircleFilled, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
 const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
     const [selectedFrontend, setSelectedFrontend] = useState({});
-    const [compressionTypes, setCompressionTypes] = useState(new Set());
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+    const [compression, setCompression] = useState('Select Option');
+    const [Addfrontendplusbutton, setAddFrontendPlusButton] = useState(1);
+
+    const [compressionAlgo, setCompressionAlgo] = useState('');
+    const [compressionTypes, setCompressionTypes] = useState(new Set());
+    const [frontendConfigurations, setFrontendConfigurations] = useState([
+
+        {
+            frontendName: '',
+            defaultBackend: 'Select',
+            compression: '',
+            compressionAlgo: '',
+            mode: '',
+            httpRedirect: '',
+            compressionTypes: new Set(),
+            binds: [{ address: '', name: '', port: '', ssl_certificate: '', ssl: false }] // Default bind field
+        }
+    ]);
 
     useEffect(() => {
-        // Update the screen width whenever the window is resized
         const handleResize = () => {
             setScreenWidth(window.innerWidth);
         };
         window.addEventListener('resize', handleResize);
-        // Clean up the event listener when the component unmounts
         return () => {
             window.removeEventListener('resize', handleResize);
         };
     }, []);
+    const handleClickOnPlusButton = (index) => {
+        setAddFrontendPlusButton(Addfrontendplusbutton + 1)
+
+    };
+    const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
+        setAddFrontendPlusButton(Addfrontendplusbutton - 1)
+    };
 
     const columns = [
         {
@@ -303,8 +50,9 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
             render: (text, record, index) => (
                 <Input
                     value={text}
-                    // onChange={e => handleInputChange(e.target.value, record.i, index, 'address')}
                     className="aclnewInput"
+                    style={{ width: '100%' }}
+                    onChange={(e) => handleBindChange(index, 'address', e.target.value)}
                 />
             )
         },
@@ -314,8 +62,9 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
             render: (text, record, index) => (
                 <Input
                     value={text}
-                    // onChange={e => handleInputChange(e.target.value, record.i, index, 'name')}
                     className="aclnewInput"
+                    style={{ width: '100%' }}
+                    onChange={(e) => handleBindChange(index, 'name', e.target.value)}
                 />
             )
         },
@@ -325,8 +74,9 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
             render: (text, record, index) => (
                 <Input
                     value={text}
-                    // onChange={e => handleInputChange(e.target.value, record.i, index, 'port')}
                     className="aclnewInput"
+                    style={{ width: '100%' }}
+                    onChange={(e) => handleBindChange(index, 'port', e.target.value)}
                 />
             )
         },
@@ -334,156 +84,292 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
             title: 'SSL Certificate Details',
             dataIndex: 'ssl_certificate',
             render: (text, record, index) => (
-                <>
-                    <Checkbox
-                        checked={record.ssl}
-                        // onChange={e => handleCheckboxChange(e.target.checked, record.i, index)}
-                        disabled={record.protocol !== 'http'}
-                    />
-                    <Input
-                        value={text}
-                        // onChange={e => handleCertificateChange(e.target.value, record.i, index)}
-                        className="ssl-certificate-input"
-                        disabled={!record.ssl}
-                        placeholder="Enter the path"
-                    />
-                </>
+                <Input
+                    value={text}
+                    className="ssl-certificate-input"
+                    disabled={!record.ssl}
+                    placeholder="Enter the path"
+                    style={{ width: '100%' }}
+                    onChange={(e) => handleBindChange(index, 'ssl_certificate', e.target.value)}
+                />
             )
         },
         {
             title: 'Action',
             render: (text, record, index) => (
-                <Button
-                    type="danger"
-                    icon={<DeleteOutlined />}
-                    // onClick={() => handleDelete(record.i, index)}
-                />
+                // <Button
+                //     type="danger"
+                //     icon={<DeleteOutlined />}
+                //     onClick={() => handleDeleteBind(index)}
+                // />
+                <Form.Item style={{ marginBottom: "5px" }}>
+                <PlusCircleOutlined onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px" }} />
+                &nbsp;&nbsp;&nbsp;
+                <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(index)} style={{ fontSize: "20px" }} />
+            </Form.Item>
             )
         }
     ];
 
+    const handleButtonClick = () => {
+        setFrontendConfigurations([...frontendConfigurations, {
+            frontendName: '',
+            defaultBackend: 'Select',
+            compression: '',
+            compressionAlgo: '',
+            mode: '',
+            httpRedirect: '',
+            compressionTypes: new Set(),
+            binds: [{ address: '', name: '', port: '', ssl_certificate: '', ssl: false }] // Default bind field
+        }]);
+    };
+
+    const handleAddBind = (index) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[index].binds.push({ address: '', name: '', port: '', ssl_certificate: '', ssl: false });
+        setFrontendConfigurations(updatedFrontends);
+    };
+    const handleCompressionChange = (value) => {
+        setCompression(value);
+        if (value === 'No') {
+            setCompressionAlgo('');
+            setCompressionTypes(new Set());
+        }
+    };
+    const handleCompressionTypeChange = (type, checked) => {
+        setCompressionTypes((prev) => {
+            const newTypes = new Set(prev);
+            if (checked) {
+                newTypes.add(type);
+            } else {
+                newTypes.delete(type);
+            }
+            return newTypes;
+        });
+    };
+    const handleCompressionAlgoChange = (value) => {
+        setCompressionAlgo(value);
+    };
+    const handleBindChange = (frontendIndex, key, value) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[frontendIndex].binds = updatedFrontends[frontendIndex].binds.map((bind, bindIndex) => {
+            if (bindIndex === key) {
+                return { ...bind, [key]: value };
+            }
+            return bind;
+        });
+        setFrontendConfigurations(updatedFrontends);
+    };
+
+    const handleDeleteBind = (index) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends.forEach((frontend) => {
+            frontend.binds.splice(index, 1); // Remove the bind at the specified index
+        });
+        setFrontendConfigurations(updatedFrontends);
+    };
+
     return (
-        <div>
-            <Divider />
-            <div style={{ display: 'flex', marginBottom: '20px' }}>
-                <div style={{ flex: 1 }}>
-                    <label>Frontend Name:</label>
-                    <Input
-                        value={selectedFrontend.name || ''}
-                        // onChange={handleNameChange}
-                        disabled
-                    />
-                </div>
-                <div style={{ flex: 1, marginLeft: '20px' }}>
-                    <label>Default Backend:</label>
-                    <Select
-                        value={selectedFrontend.default_backend || 'Select'}
-                        // onChange={handleBackendChange}
-                        style={{ width: '100%' }}
-                    >
-                        <Option value="Select">Select</Option>
-                        {/* {jsonData1.map((optionData, index) => (
-                            <Option key={index} value={optionData}>
-                                {optionData}
-                            </Option>
-                        ))} */}
-                    </Select>
-                </div>
+        <div style={{ position: 'relative', width: '100%', minHeight: '100vh', padding: '20px', backgroundColor: '#dee2e6' }}>
+            {/* Button in top-right corner */}
+            <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100 }}>
+                <Button type="primary" onClick={handleButtonClick}>
+                    Add Frontend +
+                </Button>
             </div>
 
-            <Divider />
-            <div style={{ display: 'flex', marginBottom: '20px' }}>
-                <div style={{ flex: 1 }}>
-                    <Tooltip title="Enables compression for responses sent to clients, reducing bandwidth usage. Note: Applicable only for HTTP">
-                        <label>Compression:</label>
-                    </Tooltip>
-                    <Select
-                        // value={selectedFrontend.compression ? 'Yes' : 'No'}
-                        // onChange={handleCompressionChange}
-                        style={{ width: '100%' }}
-                    >
-                        <Option value="Select Option">Select Option</Option>
-                        <Option value="Yes">Yes</Option>
-                        <Option value="No">No</Option>
-                    </Select>
-                </div>
-                <div style={{ flex: 1, marginLeft: '20px' }}>
-                    <label>Compression Algo:</label>
-                    <Select
-                        value={selectedFrontend.compression?.algorithms[0] || ''}
-                        // onChange={handleCompressionAlgoChange}
-                        style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%" }}
-                    >
-                        <Option value="">Select Option</Option>
-                        <Option value="gzip">gzip</Option>
-                        <Option value="deflate">deflate</Option>
-                        <Option value="raw-deflate">raw-deflate</Option>
-                    </Select>
-                </div>
-            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto' }}>
+                <div style={{ width: '100%' }}>
+                    {frontendConfigurations.map((frontend, index) => (
+                        <div key={index} style={{ marginBottom: '20px', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px', backgroundColor: '#fff' }}>
+                            <Divider />
+                            <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '18px', textAlign: 'center' }}>
+                                Frontend {index + 1}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ flex: 1, padding: '0 10px' }}>
+                                    <label>Frontend Name:</label>
+                                    <Input
+                                        value={frontend.frontendName}
+                                        onChange={(e) => {
+                                            const updatedFrontends = [...frontendConfigurations];
+                                            updatedFrontends[index].frontendName = e.target.value;
+                                            setFrontendConfigurations(updatedFrontends);
+                                        }}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div style={{ flex: 1, padding: '0 10px' }}>
+                                    <label>Default Backend:</label>
+                                    <Select
+                                        value={frontend.defaultBackend}
+                                        onChange={(value) => {
+                                            const updatedFrontends = [...frontendConfigurations];
+                                            updatedFrontends[index].defaultBackend = value;
+                                            setFrontendConfigurations(updatedFrontends);
+                                        }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Option value="Select">Select</Option>
+                                        {jsonData1 && jsonData1.map((optionData, idx) => (
+                                            <Option key={idx} value={optionData}>
+                                                {optionData}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            </div>
 
-            <Divider />
-            <div style={{ marginBottom: '20px' }}>
-                <label>Compression Type:</label>
-                {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
-                    <Checkbox
-                        key={type}
-                        checked={compressionTypes.has(type)}
-                        // onChange={(e) => handleCompressionTypeChange(type, e.target.checked)}
-                    >
-                        {type}
-                    </Checkbox>
-                ))}
-            </div>
+                            <Divider />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ flex: 1, padding: '0 10px' }}>
+                                    <Tooltip title="Enables compression for responses sent to clients, reducing bandwidth usage. Note: Applicable only for HTTP">
+                                        <label>Compression:</label>
+                                    </Tooltip>
+                                    <Select
+                                        value={compression}
+                                        onChange={handleCompressionChange}
 
-            <Divider />
-            <div style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%" }}>
-                <div style={{ flex: 1 }}>
-                    <label>Mode:</label>
-                    <Select
-                        value={selectedFrontend.mode || ''}
-                        onChange={(value) => setSelectedFrontend((prev) => ({ ...prev, mode: value }))}
-                        style={{ width: '100%' }}
-                    >
-                        <Option value="HTTP">HTTP</Option>
-                        <Option value="TCP">TCP</Option>
-                    </Select>
-                </div>
-            </div>
+                                        // onChange={(value) => {
 
-            <div>
-                {/* Placeholder for data iteration */}
-                <div style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', marginTop: '2%', marginLeft: '11%' }}>
-                        <div className="https-label">
-                            <Tooltip title="HTTP to HTTPS redirection">
-                                <label className="frontendLabel showInfo">HTTPS Redirection:</label>
-                            </Tooltip>
+                                        //     const updatedFrontends = [...frontendConfigurations];
+                                        //     updatedFrontends[index].compression = value;
+                                        //     setFrontendConfigurations(updatedFrontends);
+                                        // }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Option value="Select Option">Select Option</Option>
+                                        <Option value="Yes">Yes</Option>
+                                        <Option value="No">No</Option>
+                                    </Select>
+                                </div>
+                                {compression === 'Yes' && (
+                                    <>
+                                        {/* // <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}> */}
+                                        <div style={{ flex: 1, padding: '0 10px' }}>
+                                            <label>Compression Algo:</label>
+                                            <Select
+                                                value={compressionAlgo}
+                                                onChange={handleCompressionAlgoChange}
+
+                                                // onChange={(value) => {
+                                                //     const updatedFrontends = [...frontendConfigurations];
+                                                //     updatedFrontends[index].compressionAlgo = value;
+                                                //     setFrontendConfigurations(updatedFrontends);
+                                                // }}
+                                                style={{ width: '100%' }}
+                                            >
+                                                <Option value="">Select Option</Option>
+                                                <Option value="gzip">gzip</Option>
+                                                <Option value="deflate">deflate</Option>
+                                                <Option value="raw-deflate">raw-deflate</Option>
+                                            </Select>
+                                        </div>
+                                    </>
+                                )}
+
+                                {compression === 'Yes' && (
+                                    <div style={{ marginBottom: '20px', textAlign: '' }}>
+                                        <label>Compression Type:</label>
+                                        <div>
+                                            {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
+                                                <Checkbox
+                                                    key={type}
+                                                    checked={frontend.compressionTypes.has(type)}
+                                                    onChange={(e) => handleCompressionTypeChange(type, e.target.checked)}
+
+                                                    // onChange={(e) => {
+                                                    //     const updatedFrontends = [...frontendConfigurations];
+                                                    //     const currentTypes = updatedFrontends[index].compressionTypes;
+                                                    //     if (e.target.checked) {
+                                                    //         currentTypes.add(type);
+                                                    //     } else {
+                                                    //         currentTypes.delete(type);
+                                                    //     }
+                                                    //     updatedFrontends[index].compressionTypes = currentTypes;
+                                                    //     setFrontendConfigurations(updatedFrontends);
+                                                    // }}
+                                                    style={{ marginRight: '8px' }}
+                                                >
+                                                    {type}
+                                                </Checkbox>
+                                            ))}
+                                        </div>
+
+                                    </div>
+                                )}
+                            </div>
+
+
+                            <Divider />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ flex: 1, padding: '0 10px' }}>
+                                    <label>Mode:</label>
+                                    <Select
+                                        value={frontend.mode}
+                                        onChange={(value) => {
+                                            const updatedFrontends = [...frontendConfigurations];
+                                            updatedFrontends[index].mode = value;
+                                            setFrontendConfigurations(updatedFrontends);
+                                        }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Option value="HTTP">HTTP</Option>
+                                        <Option value="TCP">TCP</Option>
+                                    </Select>
+                                </div>
+                                <div style={{ flex: 1, padding: '0 10px' }}>
+                                    <div className="https-label">
+                                        <Tooltip title="HTTP to HTTPS redirection">
+                                            <label className="frontendLabel">HTTPS Redirection:</label>
+                                        </Tooltip>
+                                    </div>
+                                    <Select
+                                        value={frontend.httpRedirect}
+                                        onChange={(value) => {
+                                            const updatedFrontends = [...frontendConfigurations];
+                                            updatedFrontends[index].httpRedirect = value;
+                                            setFrontendConfigurations(updatedFrontends);
+                                        }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Option value="">Select Option</Option>
+                                        <Option value={true}>True</Option>
+                                        <Option value={false}>False</Option>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <Divider />
+
+
+                            <Divider />
+                            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                                <Button type="primary" onClick={() => handleAddBind(index)}>
+                                    Add Bind +
+                                </Button>
+                            </div>
+
+                            <Divider />
+                            <div>
+                                <Table
+                                    dataSource={frontend.binds}
+                                    columns={columns}
+                                    rowKey="address"
+                                    pagination={false}
+                                    className="table"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <Select
-                                // value={item.http_redirect}
-                                // onChange={value => handleRedirectChange(value, i)}
-                                className="sslnewInput"
-                            >
-                                <Option value="">Select Option</Option>
-                                <Option value={true}>True</Option>
-                                <Option value={false}>False</Option>
-                            </Select>
-                        </div>
-                    </div>
-                    <Table
-                        dataSource={[] /* Placeholder for item.bind */}
-                        columns={columns}
-                        rowKey="address"
-                        pagination={false}
-                        className="table"
-                    />
+                    ))}
                 </div>
             </div>
+
+
+
+            <Divider />
         </div>
     );
 };
 
 export default FrontendConfig;
-

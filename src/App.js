@@ -12,12 +12,19 @@ import FrontendConfig from './Components/Global/Frontend';
 
 const App = () => {
   return [
-    { path: "/", element: <Login /> },
+    { path: "", element: <Login /> },
+
+    { path: "/", element: <Naviagtion /> },
+    { path: "/home", element: <Naviagtion /> },
     { path: "/global", element: <Naviagtion /> },
     { path: "/default", element: < Naviagtion /> },
-    { path: "/frontend", element: <FrontendConfig /> },
+    { path: "/frontend", element: <Naviagtion /> },
+    { path: "/stats", element: <Naviagtion /> },
+    { path: "/backend", element: <Naviagtion /> },
+    { path: "/acl", element: <Naviagtion /> },
+    { path: "/switchingrules", element: <Naviagtion /> },
 
-    { path: "/navbar", element: <NavBar /> },
+
   ]
 }
 

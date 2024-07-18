@@ -50,6 +50,8 @@ const GlobalContainer = () => {
     return (
         <>
             <div className="globalContainer">
+            <h3>Global Section</h3>
+            &nbsp;&nbsp;&nbsp;
                 <Form
                     onFinish={handleSubmit}
                     initialValues={newJsonData}
@@ -60,23 +62,25 @@ const GlobalContainer = () => {
                         <Form.Item
                             name="maxconn"
                             className='inline-form-item'
-                            label={
-                                <Tooltip title="The maximum allowed concurrent connections for this server. Once reached, additional connection attempts may be rejected or queued, depending on configuration.">
-                                    Max Connection
-                                </Tooltip>
+                            label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>Max Connection <a style={{ color: "red" }}>*</a></span>}
 
-                            }
+                        // label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>Max Connection <a style={{ color: "red" }}>*</a></span>
+                        //     <Tooltip title="The maximum allowed concurrent connections for this server. Once reached, additional connection attempts may be rejected or queued, depending on configuration.">
+                        //         Max Connection
+                        //     </Tooltip>
+
+                        // }
                         >
-                            <Input style={{ fontWeight: '500', display: 'inline-block', marginLeft: screenWidth > 1000 ? '2.5%' : '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                            <Input style={{ fontWeight: '500', display: 'inline-block', textAlign: 'left', fontSize: "12px", width: 300 }}
                                 type="number" placeholder="Enter Max-conn number" />
                         </Form.Item>
 
                         <Form.Item
                             name="tlsSecurity"
-                            label="TLS Security:"
+                            label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>TLS Security <a style={{ color: "red" }}>*</a></span>}
 
                         >
-                            <Select style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                            <Select style={{ width: 300, marginLeft: "0.2cm" }} // width: screenWidth > 1000 ? "20%" : "30%",
                                 placeholder="Select TLS Security"
                                 onChange={handleTlsSecurityChange}
                             >
@@ -92,9 +96,10 @@ const GlobalContainer = () => {
                                     <Col span={12}>
                                         <Form.Item
                                             name="maxVersion"
-                                            label="Max-Versions:"
+                                            label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>Max-Versions <a style={{ color: "red" }}>*</a></span>}
+
                                         >
-                                            <Select style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                                            <Select style={{ width: 300, marginLeft: "0.2cm" }}
                                                 placeholder="Select Max Version">
                                                 <Option value="SSLv3">SSLv3</Option>
                                                 <Option value="TLSv1.0">TLSv1.0</Option>
@@ -107,9 +112,9 @@ const GlobalContainer = () => {
                                     <Col span={12}>
                                         <Form.Item
                                             name="minVersion"
-                                            label="Min-Versions:"
+                                            label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>Min-Versions <a style={{ color: "red" }}>*</a></span>}
                                         >
-                                            <Select style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                                            <Select style={{ width: 300, marginLeft: "0.2cm" }}
                                                 placeholder="Select Min Version">
                                                 <Option value="SSLv3">SSLv3</Option>
                                                 <Option value="TLSv1.0">TLSv1.0</Option>
@@ -126,18 +131,22 @@ const GlobalContainer = () => {
                             <Col span={12}>
                                 <Form.Item
                                     name="ciphers"
-                                    label="Cipher:"
+                                    label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>Cipher <a style={{ color: "red" }}>*</a></span>}
                                 >
-                                    <Input style={{ fontWeight: '500', display: 'inline-block', marginLeft: '12.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                                    <Input style={{ fontWeight: '500', display: 'inline-block', textAlign: 'left', fontSize: "12px", width: 300, marginLeft: "0.2cm" }}
+
+                                        /* <Input style={{ fontWeight: '500', display: 'inline-block', marginLeft: '12.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }} */
                                         placeholder="Enter ciphers" />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
                                 <Form.Item
                                     name="IP Address"
-                                    label="IP Address/Port:"
+                                    label={<span style={{ fontWeight: '500', display: 'inline-block', width: "5cm", textAlign: 'left', fontSize: "12px" }}>IP Address/Port <a style={{ color: "red" }}>*</a></span>}
+
+                                
                                 >
-                                    <Input style={{ fontWeight: '500', display: 'inline-block', marginLeft: '3.5%', textAlign: 'left', fontSize: "12px", width: screenWidth > 1000 ? "20%" : "30%", }}
+                                    <Input style={{ fontWeight: '500', display: 'inline-block', textAlign: 'left', fontSize: "12px", width: 300, marginLeft: "0.2cm" }}
                                         placeholder="Enter IP Address/Port" />
                                 </Form.Item>
                             </Col>
@@ -145,7 +154,7 @@ const GlobalContainer = () => {
                     </div>
 
                     <Form.Item>
-                        <Button style={{alignContent:'center'}} type="primary" htmlType="submit">
+                        <Button style={{ alignContent: 'center' }} type="primary" htmlType="submit">
                             Final Submit
                         </Button>
                         <Button type="default" onClick={handleSave} style={{ marginLeft: '10px' }}>
