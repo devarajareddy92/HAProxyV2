@@ -47,7 +47,7 @@ const Default = () => {
         position: 'relative',
         width: '100%',
         minHeight: '100vh',
-        padding: '20px',
+        padding: '40px',
         backgroundColor: '#dee2e6',
         padding:'20px'
     };
@@ -69,7 +69,7 @@ const Default = () => {
             <div style={{ display: 'flex', justifyContent: 'left', width: '100%'}}>
                 <div style={{ width: '100%' }}>
                     <div style={{ marginBottom: '20px', border: '1px solid #d9d9d9', borderRadius: '4px', backgroundColor: '#fff', textAlign: 'left',paddingLeft:'40px'  }}>
-                        <Divider />
+                        <br/>
                         <div style={headerStyle}>
                             Default Section
                         </div>

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Input, Select, Button, Form, Card, Row, Col, Tooltip } from "antd";
-import { PlusCircleFilled, MinusCircleFilled, DownOutlined, UpOutlined } from "@ant-design/icons";
+import {
+  PlusCircleFilled,
+  MinusCircleFilled,
+  DownOutlined,
+  UpOutlined,
+} from "@ant-design/icons";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -21,7 +26,8 @@ const Backend = () => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [backendIndexplus, setBackendIndexPlus] = useState(1);
   const [ServerIndexplus, setServerIndexplus] = useState(1);
-  const [contactPersonDetailsIsOpen, setContactPersonDetailsIsOpen] = useState(false);
+  const [contactPersonDetailsIsOpen, setContactPersonDetailsIsOpen] =
+    useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -168,10 +174,16 @@ const Backend = () => {
   return (
     <div style={styles.container}>
       <Form layout="vertical" style={styles.form}>
-        
-      <h1 >Backend</h1>
-      <br/>
-      <br/>
+        <div
+          style={{
+            marginBottom: "20px",
+            fontSize: "18px",
+            fontWeight: "bold",
+          }}
+        >
+          Backend
+        </div>
+
         <Row justify="start" style={styles.buttonRow}>
           <Button
             type="primary"

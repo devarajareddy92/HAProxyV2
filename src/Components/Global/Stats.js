@@ -104,7 +104,15 @@ const Stats = () => {
               padding: "40px",
             }}
           >
-            <h1> Stats Action</h1>
+            <div
+              style={{
+                marginBottom: "20px",
+                fontSize: "18px",
+                fontWeight: "bold",
+              }}
+            >
+              Stats Action
+            </div>
             <br />
             <label style={styles.label}>
               Stats Action

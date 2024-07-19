@@ -132,9 +132,16 @@ const AclComponent = () => {
   return (
     <div style={containerStyle}>
       <Form layout="vertical" style={formStyle}>
-        <h1> ACL</h1>
-        <br/>
-        <br/>
+        <div
+          style={{
+            marginBottom: "20px",
+            fontSize: "18px",
+            fontWeight: "bold",
+          }}
+        >
+          ACL
+        </div>
+
         <Row justify="start" style={{ marginBottom: "20px" }}>
           <Button
             type="primary"
