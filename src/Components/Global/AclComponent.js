@@ -62,6 +62,43 @@ const AclComponent = () => {
     );
     setAclData(updatedData);
   };
+    // Styles
+    const containerStyle = {
+      position: "relative",
+      width: "100%",
+      minHeight: "100vh",
+      padding: "20px",
+      backgroundColor: "#dee2e6",
+    };
+  
+    const formStyle = {
+      display: "flex",
+      flexDirection: "column",
+      width: "100%",
+      maxWidth: "1300px",
+      backgroundColor: "#fff",
+      padding: "40px",
+    };
+  
+    const formItemStyle = {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      width: "100%",
+      marginBottom: "20px",
+    };
+  
+    const headerStyle = {
+      position: "relative",
+      marginBottom: "20px",
+      fontSize: "18px",
+      fontWeight: "bold",
+    };
+  
+    const buttonGroupStyle = {
+      textAlign: "left",
+      marginTop: "20px",
+    };
   const handleClickOnPlusButton = (index) => {
     console.log("the plus button  is");
     setAclPlusButton(aclplusbutton + 1)
@@ -85,7 +122,17 @@ const AclComponent = () => {
   };
 
   return (
-    <Form layout="vertical">
+    <div style={containerStyle}>
+    <Form layout="vertical" style={formStyle}>
+      <div
+        style={{
+          marginBottom: "20px",
+          fontSize: "18px",
+          fontWeight: "bold",
+        }}
+      >
+        ACL
+      </div>
       <Row justify="start" style={{ marginBottom: '20px' }}>
         <Button
           type="primary"

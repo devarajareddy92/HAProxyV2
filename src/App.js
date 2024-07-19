@@ -12,9 +12,9 @@ import FrontendConfig from './Components/Global/Frontend';
 
 const App = () => {
   return [
-    { path: "", element: <Login /> },
+    // { path: "", element: <Login /> },
 
-    { path: "/", element: <Naviagtion /> },
+    { path: "/", element: <Login /> },
     { path: "/home", element: <Naviagtion /> },
     { path: "/global", element: <Naviagtion /> },
     { path: "/default", element: < Naviagtion /> },

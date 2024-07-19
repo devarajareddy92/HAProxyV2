@@ -7,12 +7,12 @@ const { Title } = Typography;
 const { Panel } = Collapse;
 const { Content } = Layout;
 
-const StatusPage = () => {
+const StatusPage = (props) => {
     const [activeStatus, setActiveStatus] = useState('');
     const [runningSince, setRunningSince] = useState('');
     const [logsText, setLogsText] = useState('');
     const [messages, setMessages] = useState([]);
-
+console.log('protokenis this',props.protoken);
     useEffect(() => {
         // Fetch data for activeStatus, runningSince, logsText, and messages
         axios.get('/api/status') // Replace with your API endpoint

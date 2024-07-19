@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Input,Form, Checkbox, Divider, Tooltip, Button, Table } from 'antd';
+import { Select, Input, Form, Checkbox, Divider, Tooltip, Button, Table } from 'antd';
 import { PlusCircleFilled, MinusCircleFilled, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import IpAddress from '../../IPConfig';
+import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
-const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
+const FrontendConfig = (props) => {
+    const IP = IpAddress();
     const [selectedFrontend, setSelectedFrontend] = useState({});
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [compression, setCompression] = useState('Select Option');
@@ -12,6 +16,12 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
 
     const [compressionAlgo, setCompressionAlgo] = useState('');
     const [compressionTypes, setCompressionTypes] = useState(new Set());
+    const [form] = Form.useForm();
+    const [Jsondata, setJsonData] = useState({});
+    const [LoadingFlag, setLoadingFlag] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(true);
+    const location = useLocation();
+    const navigate = useNavigate();
     const [frontendConfigurations, setFrontendConfigurations] = useState([
 
         {
@@ -42,6 +52,64 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
     const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
         setAddFrontendPlusButton(Addfrontendplusbutton - 1)
     };
+    var protokenbackend;
+
+    try {
+        protokenbackend = props.protoken
+    } catch (exception) {
+        navigate("/")
+    }
+    useEffect(() => {
+        setLoadingFlag(true)
+        fetch(IP + "frontend", {
+            headers: {
+                "Authorization": protokenbackend
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Jsondata", Jsondata?.data);
+                if (data.error === 0) {
+                    setJsonData(data)
+                    console.log("The data is", data);
+                    setLoadingFlag(false)
+                } else if (data.error === 1) {
+                    // navigate('/');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                setLoadingFlag(false);
+            });
+    }, [form]);
+    console.log("Jsondata?.data?.data?.maxconn", Jsondata?.frontend_data?.frontend);
+
+    useEffect(() => {
+        Jsondata?.frontend_data?.forEach((frontendData, i) => {
+            console.log("the length is", Jsondata.frontend_data.length);
+            const backendNames = Jsondata.backend_names;
+            console.log("backend", backendNames);
+
+            if (frontendData?.frontend) {
+                frontendData?.bind?.data.forEach((server, j) => {
+                    console.log("servers", server);
+
+                    form.setFieldsValue({
+
+                        [`frontendname${i}`]: Jsondata.frontend_data.frontend.name,
+
+                        [`mode${i}`]: Jsondata.frontend_data.frontend.mode,
+                        [`httpredirect${j}`]: server.name,
+                        [`ip/fqdn${j}`]: server.address,
+                        [`portnumber${j}`]: server.port,
+                        [`check${j}`]: server.check,
+
+                    });
+                });
+
+            }
+        });
+    }, [Jsondata]);
 
     const columns = [
         {
@@ -103,10 +171,10 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                 //     onClick={() => handleDeleteBind(index)}
                 // />
                 <Form.Item style={{ marginBottom: "5px" }}>
-                <PlusCircleOutlined onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px" }} />
-                &nbsp;&nbsp;&nbsp;
-                <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(index)} style={{ fontSize: "20px" }} />
-            </Form.Item>
+                    <PlusCircleOutlined onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px" }} />
+                    &nbsp;&nbsp;&nbsp;
+                    <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(index)} style={{ fontSize: "20px" }} />
+                </Form.Item>
             )
         }
     ];
@@ -188,7 +256,8 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                 <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <label>Frontend Name:</label>
+                                    <label name="frontendname">
+                                        Frontend Name:</label>
                                     <Input
                                         value={frontend.frontendName}
                                         onChange={(e) => {
@@ -202,7 +271,7 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                                 <div style={{ flex: 1, padding: '0 10px' }}>
                                     <label>Default Backend:</label>
                                     <Select
-                                        value={frontend.defaultBackend}
+                                        value={Jsondata.backend_names}
                                         onChange={(value) => {
                                             const updatedFrontends = [...frontendConfigurations];
                                             updatedFrontends[index].defaultBackend = value;
@@ -211,11 +280,7 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                                         style={{ width: '100%' }}
                                     >
                                         <Option value="Select">Select</Option>
-                                        {jsonData1 && jsonData1.map((optionData, idx) => (
-                                            <Option key={idx} value={optionData}>
-                                                {optionData}
-                                            </Option>
-                                        ))}
+                                        {/* <option value="beckend">backend</option> */}
                                     </Select>
                                 </div>
                             </div>
@@ -278,17 +343,7 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                                                     checked={frontend.compressionTypes.has(type)}
                                                     onChange={(e) => handleCompressionTypeChange(type, e.target.checked)}
 
-                                                    // onChange={(e) => {
-                                                    //     const updatedFrontends = [...frontendConfigurations];
-                                                    //     const currentTypes = updatedFrontends[index].compressionTypes;
-                                                    //     if (e.target.checked) {
-                                                    //         currentTypes.add(type);
-                                                    //     } else {
-                                                    //         currentTypes.delete(type);
-                                                    //     }
-                                                    //     updatedFrontends[index].compressionTypes = currentTypes;
-                                                    //     setFrontendConfigurations(updatedFrontends);
-                                                    // }}
+
                                                     style={{ marginRight: '8px' }}
                                                 >
                                                     {type}
@@ -321,7 +376,7 @@ const FrontendConfig = ({ jsonData, jsonData1, secondnewJsonData }) => {
                                 <div style={{ flex: 1, padding: '0 10px' }}>
                                     <div className="https-label">
                                         <Tooltip title="HTTP to HTTPS redirection">
-                                            <label className="frontendLabel">HTTPS Redirection:</label>
+                                            <label name='httpredirect'className="frontendLabel">HTTPS Redirection:</label>
                                         </Tooltip>
                                     </div>
                                     <Select
