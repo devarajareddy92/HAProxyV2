@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "antd";
-import { Button, Form, Input, Select, Divider } from "antd";
+import { Button, Form, Input, Select, Divider ,message} from "antd";
+import { UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
+
 // import '../CssFolder/StyleCss.css';
+import IpAddress from '../../IPConfig';
+import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-const Stats = () => {
+const Stats = (props) => {
+    const IP = IpAddress();
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+    const [JsonData, setJsonData] = useState({});
+    const [LoadingFlag, setLoadingFlag] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(true);
+    const [form] = Form.useForm();
+    const [statsEnabled, setStatsEnabled] = useState(false);
+    const [loading, setLoading] = useState(false);
 
+    const location = useLocation();
+    const navigate = useNavigate();
+  
     useEffect(() => {
         const handleResize = () => {
             setScreenWidth(window.innerWidth);
@@ -15,6 +30,78 @@ const Stats = () => {
             window.removeEventListener("resize", handleResize);
         };
     }, []);
+
+    var protokenstats;
+
+  try {
+    protokenstats = props.protoken
+  } catch (exception) {
+    navigate("/")
+  }
+  useEffect(() => {
+    fetchStats();
+  }, []);
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get(IP+"stats",{
+      headers: {
+        'Authorization': protokenstats,
+        'Content-Type': 'application/json'
+    },
+});
+      const data = response.data;
+
+      if (data.length > 0) {
+        const stats = data[0];
+        form.setFieldsValue({
+          bindaddress: stats.bind[0].address,
+          bindport: stats.bind[0].port,
+          refreshrate: parseInt(stats.frontend.stats_options.stats_refresh_delay) / 1000,
+          urll: stats.frontend.stats_options.stats_uri_prefix.substring(1),
+          username: stats.frontend.stats_options.stats_auths[0].user,
+          password: stats.frontend.stats_options.stats_auths[0].passwd,
+        });
+        setStatsEnabled(true);
+      } else {
+        setStatsEnabled(false);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      message.error('Failed to fetch stats.');
+    }
+  };
+  const onFinish = async (values) => {
+    setLoading(true);
+    const data = statsEnabled ? {
+      bindaddress: values.bindaddress,
+      bindport: values.bindport,
+      refreshrate: parseInt(values.refreshrate) * 1000,
+      urll: `/${values.urll}`,
+      username: values.username,
+      password: values.password,
+    } : { stats_action: false };
+
+    try {
+      const response = await axios.post('/save_stats', data,{
+        headers: {
+            'Authorization': protokenstats,
+            'Content-Type': 'application/json',
+        },
+    });
+      if (response.data.error === 0) {
+        message.success('Data saved successfully. Final submit required.');
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error saving stats:', error);
+      message.error('Failed to save stats.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
     const styles = {
         container: {
             position: "relative",
@@ -86,6 +173,7 @@ const Stats = () => {
         button: {
             fontWeight: "500",
             fontSize: "12px",
+           
         },
     };
     return (
@@ -116,10 +204,11 @@ const Stats = () => {
                             </a>
                         </label>
 
-                        <Form layout="horizontal" style={styles.form}>
+                        <Form  form={form}  layout="horizontal" style={styles.form} onFinish={onFinish}>
                             <div style={styles.row}>
 
                                 <Form.Item
+                                 name="bindaddress"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Bind Address <span style={styles.required}>*</span>
@@ -133,6 +222,7 @@ const Stats = () => {
                                     />
                                 </Form.Item>
                                 <Form.Item
+                                 name="bindaddress"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Bind Port <span style={styles.required}>*</span>
@@ -146,6 +236,7 @@ const Stats = () => {
                             </div>
                             <div style={styles.row}>
                                 <Form.Item
+                                 name="refreshrate"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Refresh Rate <span style={styles.required}>*</span>
@@ -159,6 +250,7 @@ const Stats = () => {
                                     />
                                 </Form.Item>
                                 <Form.Item
+                                name="urll"
                                     label={
                                         <span style={styles.labelSpan}>
                                             URL <span style={styles.required}>*</span>
@@ -171,6 +263,7 @@ const Stats = () => {
                             </div>
                             <div style={styles.row}>
                                 <Form.Item
+                                 name="username"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Username <span style={styles.required}>*</span>
@@ -182,6 +275,7 @@ const Stats = () => {
                                 </Form.Item>
 
                                 <Form.Item
+                                name="password"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Password <span style={styles.required}>*</span>
@@ -197,7 +291,7 @@ const Stats = () => {
                                 </Form.Item>
                             </div>
                             <Form.Item style={styles.buttonItem}>
-                                <Button type="primary" style={styles.button}>
+                                <Button type="primary" htmlType="submit" style={styles.button }>
                                     Save
                                 </Button>
                             </Form.Item>

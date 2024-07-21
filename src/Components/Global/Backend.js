@@ -33,12 +33,44 @@ const Backend = (props) => {
     const [ServerIndexplus, setServerIndexplus] = useState(1);
     const [contactPersonDeatilsIsOpen, setContactPersonDetailsIsOpen] = useState(false);
     const [form] = Form.useForm();
-    const [Jsondata, setJsonData] = useState({});
+    const [JsonData, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
 
     const location = useLocation();
     const navigate = useNavigate();
+
+    // jsonData[backendindex] =[//jsonData[backendindex].server.data.length
+    //     {
+    //         "backend": {
+    //             "balance": {
+    //                 "algorithm": "roundrobin"
+    //             },
+    //             "mode": "http",
+    //             "name": "NPS_Backend"
+    //         },
+    //         "server": {
+    //             "_version": 411,
+    //             "data": [
+    //                 {
+    //                     "address": "10.101.104.91",
+    //                     "check": "enabled",
+    //                     "name": "NPS_Server_91",
+    //                     "port": 8083
+    //                 },
+    //                 {
+    //                     "address": "10.101.104.140",
+    //                     "check": "enabled",
+    //                     "name": "NPS_Server_140",
+    //                     "port": 8083
+    //                 }
+    //             ]
+    //         }
+    //     },
+    
+
+    // ]
+
 
     useEffect(() => {
         const handleResize = () => {
@@ -84,7 +116,7 @@ const Backend = (props) => {
 
     // console.log("Jsondata?.data?.data?.maxconn", Jsondata)
 
- 
+
 
     const handleNameChange = (value, index) => {
         const updatedData = [...newJsonData];
@@ -122,17 +154,22 @@ const Backend = (props) => {
 
     const handleClickOnPlusButton = (index) => {
         console.log("the plus button  is");
-        setServerIndexplus(ServerIndexplus + 1)
-        // const updatedData = [...newJsonData];
-        // updatedData[backendIndex].server.push({ name: '', ip: '', port: '', check: 'disabled' });
-        // setBackendIndex(updatedData);
+        const updatedData = [...JsonData];
+        console.log("JsonData:", JsonData);
+        console.log("updatedData[index]:", updatedData[index]);
+        
+        // Check if `server` exists and is an array
+        if (Array.isArray(updatedData[index].server)) {
+            updatedData[index].server=[];
+        } 
+        updatedData[index].server.push({ name: '', ip: '', port: '', check: 'disabled' });
+        setJsonData(updatedData);
     };
 
     const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
-        setServerIndexplus(ServerIndexplus - 1)
-        // const updatedData = [...newJsonData];
-        // updatedData[backendIndex].server = updatedData[backendIndex].server.filter((_, i) => i !== serverIndex);
-        // setNewJsonData(updatedData);
+        const updatedData = [...JsonData];
+        updatedData[backendIndex].server = updatedData[backendIndex].server.filter((_, i) => i !== serverIndex);
+        setJsonData(updatedData);
     };
 
     const handleServerChange = (backendIndex, serverIndex, key, value) => {
@@ -253,39 +290,39 @@ const Backend = (props) => {
             });
     };
     useEffect(() => {
-        for (let i = 0; i < Jsondata.length; i++) {
-            console.log("the length is", Jsondata.length);
-            const backend = Jsondata[i].backend;
+        for (let i = 0; i < JsonData.length; i++) {
+            console.log("the length is", JsonData.length);
+            const backend = JsonData[i].backend;
             console.log("backend", backend)
-            if (Jsondata[i].server?.data) {
-                for (let j = 0; j < Jsondata[i].server.data.length; j++) {
-                    const server = Jsondata[i].server?.data[j];
+            if (JsonData[i].server?.data) {
+                for (let j = 0; j < JsonData[i].server.data.length; j++) {
+                    const server = JsonData[i].server?.data[j];
                     console.log("servers", server)
-    
+
                     form.setFieldsValue({
-    
-                        [`Backendname${i}`]: backend.name,
-                        [`Balance${i}`]: backend.balance.algorithm,
-                        [`mode${i}`]: backend.mode,
-                        [`servername${j}`]: server.name,
-                        [`ip/fqdn${j}`]: server.address,
-                        [`portnumber${j}`]: server.port,
-                        [`check${j}`]: server.check,
-    
+
+                        [`Backendname_${i}`]: backend.name,
+                        [`Balance_${i}`]: backend.balance.algorithm,
+                        [`mode_${i}`]: backend.mode,
+                        [`servername_${i}_${j}`]: server.name,
+                        [`ipFQDN_${i}_${j}`]: server.address,
+                        [`portNumber_${i}_${j}`]: server.port,
+                        [`check_${i}_${j}`]: server.check,
+
                     });
                 }
             }
         }
 
-    }, [Jsondata]);
+    }, [JsonData]);
 
-
+    console.log("Jsondata", JsonData);
     return (
         <div style={styles.container}>
             <Form layout="vertical" style={styles.form}
-              form={form}
+                form={form}
             >
-          
+
                 <h3 >Backend</h3>
                 &nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;
@@ -298,16 +335,18 @@ const Backend = (props) => {
                         Add Backend
                     </Button>
                 </Row>
-                {Array.from({ length: backendIndexplus  }, (_, index) => (
-                    <div key={backendIndexplus}>
+                {/* {Array.from({ length: backendIndexplus }, (_, index) => ( */}
+                {Array.from({ length: JsonData.length }, (_, backendIndex) => (
 
+                    <div key={backendIndex}>
                         <Row gutter={16} style={{ marginBottom: '20px' }}>
                             <Col span={8}>
-                                <Form.Item name="Backendname" label="Backend Name" required>
+                                <Form.Item  name={`Backendname_${backendIndex}`} label="Backend Name" required>
                                     <Input
+                                    
                                         placeholder="Enter the backend value"
                                         // value={backend.data.name}
-                                        onChange={(e) => handleNameChange(e.target.value, backendIndexplus)}
+                                        // onChange={(e) => handleNameChange(e.target.value, backendIndex)}
                                         required
                                         style={styles.input}
                                     />
@@ -320,13 +359,14 @@ const Backend = (props) => {
                                             Balance :
                                         </Tooltip>
                                     }
-                                    name="Balance"
+                                    name={`Balance_${backendIndex}`}
                                     required
                                 >
                                     <Select
                                         placeholder="Select"
+                                        
                                         // value={backend.data.balance.algorithm}
-                                        onChange={(value) => handleAlgorithmChange(value, backendIndexplus)}
+                                        onChange={(value) => handleAlgorithmChange(value, backendIndex)}
                                         required
                                         style={styles.input}
                                     >
@@ -345,11 +385,12 @@ const Backend = (props) => {
                                 </Form.Item>
                             </Col>
                             <Col span={6}>
-                                <Form.Item name="mode" label="Mode" required>
+                                <Form.Item name={`mode_${backendIndex}`} label="Mode" required>
                                     <Select
                                         placeholder="Select"
+                                        
                                         // value={backend.data.mode}
-                                        onChange={(value) => handleModeChange(value, backendIndexplus)}
+                                        onChange={(value) => handleModeChange(value, backendIndex)}
                                         required
                                         style={styles.input}
                                     >
@@ -362,7 +403,7 @@ const Backend = (props) => {
                                 <Button
                                     type="danger"
                                     icon={<MinusCircleFilled />}
-                                    onClick={() => removeBackend(backendIndexplus)}
+                                    onClick={() => removeBackend(backendIndex)}
                                 />
                             </Col>
                         </Row>
@@ -371,7 +412,8 @@ const Backend = (props) => {
 
                             <div
                                 style={{ width: "100%", cursor: "pointer" }} onClick={() => setContactPersonDetailsIsOpen(!contactPersonDeatilsIsOpen)}>
-                                <a style={{ fontSize: "small", fontWeight: "500", color: "black", marginLeft: "0.2cm" }}>{contactPersonDeatilsIsOpen ? <UpOutlined onClick={() => setContactPersonDetailsIsOpen(false)} /> : <DownOutlined onClick={() => setContactPersonDetailsIsOpen(true)} />} Server Details</a>
+                                <a style={{ fontSize: "small", fontWeight: "500", color: "black", marginLeft: "0.2cm" }}>
+                                    {contactPersonDeatilsIsOpen ? <UpOutlined onClick={() => setContactPersonDetailsIsOpen(false)} /> : <DownOutlined onClick={() => setContactPersonDetailsIsOpen(true)} />} Server Details</a>
                             </div>
                             {contactPersonDeatilsIsOpen && (
                                 <div>
@@ -412,11 +454,12 @@ const Backend = (props) => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {Array.from({ length: ServerIndexplus }, (_, index) => (
-                                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
+                                                {Array.from({ length: JsonData[backendIndex].server.data.length }, (_, index) => (
+
+                                                    < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item
-                                                                name={`serverName_${index}`}
+                                                                name={`servername_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
                                                                 rules={[{ required: true, message: 'Please input the Server Name' }]}
                                                             >
@@ -428,7 +471,7 @@ const Backend = (props) => {
                                                         </TableCell>
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item
-                                                                name={`ipFQDN_${index}`}
+                                                                name={`ipFQDN_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
                                                                 rules={[{ required: true, message: 'Please input the IP/FQDN' }]}
                                                             >
@@ -440,7 +483,7 @@ const Backend = (props) => {
                                                         </TableCell>
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item
-                                                                name={`portNumber_${index}`}
+                                                                name={`portNumber_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
                                                                 rules={[{ required: true, message: 'Please input the Port Number' }]}
                                                             >
@@ -452,7 +495,7 @@ const Backend = (props) => {
                                                         </TableCell>
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item
-                                                                name={`check_${index}`}
+                                                                name={`check_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
                                                                 rules={[{ required: true, message: 'Please select an option' }]}
                                                             >
@@ -469,9 +512,9 @@ const Backend = (props) => {
 
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item style={styles.formItemSmall}>
-                                                                <PlusCircleOutlined onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px" }} />
+                                                                <PlusCircleOutlined onClick={() => handleClickOnPlusButton(backendIndex)} style={{ fontSize: "20px" }} />
                                                                 &nbsp;&nbsp;&nbsp;
-                                                                <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(index)} style={{ fontSize: "20px" }} />
+                                                                <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(backendIndex,index)} style={{ fontSize: "20px" }} />
                                                             </Form.Item>
                                                         </TableCell>
                                                     </TableRow>
@@ -482,22 +525,23 @@ const Backend = (props) => {
                                 </div>
 
                             )}
-
-                            <Form.Item style={{ alignContent: 'center' }}>
-                                <Button type="default" onClick={handleSave} style={{ alignContent: 'center', marginLeft: '10px' }}>
-                                    Save
-                                </Button>
-                                <Button style={{ alignContent: 'center' }} type="primary" htmlType="submit">
-                                    Final Submit
-                                </Button>
-                            </Form.Item>
                         </Card>
+
                     </div>
 
-                ))
-                }
+                ))}
+                <Form.Item style={{ alignContent: 'center' }}>
+                    <Button type="default" onClick={handleSave} style={{ alignContent: 'center', marginLeft: '10px' }}>
+                        Save
+                    </Button>
+                    <Button style={{ alignContent: 'center' }} type="primary" htmlType="submit">
+                        Final Submit
+                    </Button>
+                </Form.Item>
+
             </Form >
         </div >
+
     );
 };
 

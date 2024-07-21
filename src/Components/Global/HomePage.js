@@ -7,7 +7,7 @@ const { Title } = Typography;
 const { Panel } = Collapse;
 const { Content } = Layout;
 
-const StatusPage = (props) => {
+const HomePage = (props) => {
     const [activeStatus, setActiveStatus] = useState('');
     const [runningSince, setRunningSince] = useState('');
     const [logsText, setLogsText] = useState('');
@@ -79,4 +79,4 @@ console.log('protokenis this',props.protoken);
     );
 };
 
-export default StatusPage;
+export default HomePage;

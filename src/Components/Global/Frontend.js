@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Input, Form, Checkbox, Divider, Tooltip, Button, Table } from 'antd';
+import { Select, Input, Form, Checkbox, Divider, Tooltip, Button } from 'antd';
 import { PlusCircleFilled, MinusCircleFilled, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -45,12 +52,52 @@ const FrontendConfig = (props) => {
             window.removeEventListener('resize', handleResize);
         };
     }, []);
-    const handleClickOnPlusButton = (index) => {
-        setAddFrontendPlusButton(Addfrontendplusbutton + 1)
+    const handleClickOnPlusButton = (frontendIndex) => {
+        // setAddFrontendPlusButton(Addfrontendplusbutton + 1)
+
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[frontendIndex].binds.push({
+            address: "",
+            name: "",
+            port: "",
+            ssl_certificate: "",
+            ssl: false,
+        });
+        setFrontendConfigurations(updatedFrontends);
+    };
+
+    const handleClickOnMinusOfButton = (frontendIndex, bindIndex) => {
+        // setAddFrontendPlusButton(Addfrontendplusbutton - 1)
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[frontendIndex].binds = updatedFrontends[frontendIndex].binds.filter(
+            (_, i) => i !== bindIndex
+        );
+        setFrontendConfigurations(updatedFrontends);
 
     };
-    const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
-        setAddFrontendPlusButton(Addfrontendplusbutton - 1)
+    const handleAddFrontend = () => {
+        setFrontendConfigurations([
+            ...frontendConfigurations,
+            {
+                frontendName: "",
+                defaultBackend: "Select",
+                compression: "",
+                compressionAlgo: "",
+                mode: "",
+                httpRedirect: "",
+                compressionTypes: new Set(),
+                binds: [
+                    { address: "", name: "", port: "", ssl_certificate: "", ssl: false },
+                ],
+            },
+        ]);
+    };
+
+    const handleDeleteFrontend = (index) => {
+        const updatedFrontends = frontendConfigurations.filter(
+            (_, i) => i !== index
+        );
+        setFrontendConfigurations(updatedFrontends);
     };
     var protokenbackend;
 
@@ -91,93 +138,30 @@ const FrontendConfig = (props) => {
             console.log("backend", backendNames);
 
             if (frontendData?.frontend) {
-                frontendData?.bind?.data.forEach((server, j) => {
-                    console.log("servers", server);
+                frontendData?.bind?.data.forEach((bind, j) => {
+                    console.log("serversserversservers", bind);
 
                     form.setFieldsValue({
+                        [`frontendname${i}`]: frontendData.frontend?.name,
+                        [`mode${i}`]: frontendData.frontend?.mode,
+                        [`httpredirect${i}`]: frontendData.frontend?.http_redirect,
 
-                        [`frontendname${i}`]: Jsondata.frontend_data.frontend.name,
+                        [`bindname${j}`]: bind.name,
+                        [`address${j}`]: bind.address,
+                        [`port${j}`]: bind.port,
+                 
 
-                        [`mode${i}`]: Jsondata.frontend_data.frontend.mode,
-                        [`httpredirect${j}`]: server.name,
-                        [`ip/fqdn${j}`]: server.address,
-                        [`portnumber${j}`]: server.port,
-                        [`check${j}`]: server.check,
+                      
 
                     });
                 });
 
             }
         });
-    }, [Jsondata]);
+    }, [Jsondata]
+);
+console.log("the data is this",Jsondata);
 
-    const columns = [
-        {
-            title: 'Bind Address',
-            dataIndex: 'address',
-            render: (text, record, index) => (
-                <Input
-                    value={text}
-                    className="aclnewInput"
-                    style={{ width: '100%' }}
-                    onChange={(e) => handleBindChange(index, 'address', e.target.value)}
-                />
-            )
-        },
-        {
-            title: 'Bind Name',
-            dataIndex: 'name',
-            render: (text, record, index) => (
-                <Input
-                    value={text}
-                    className="aclnewInput"
-                    style={{ width: '100%' }}
-                    onChange={(e) => handleBindChange(index, 'name', e.target.value)}
-                />
-            )
-        },
-        {
-            title: 'Bind Port',
-            dataIndex: 'port',
-            render: (text, record, index) => (
-                <Input
-                    value={text}
-                    className="aclnewInput"
-                    style={{ width: '100%' }}
-                    onChange={(e) => handleBindChange(index, 'port', e.target.value)}
-                />
-            )
-        },
-        {
-            title: 'SSL Certificate Details',
-            dataIndex: 'ssl_certificate',
-            render: (text, record, index) => (
-                <Input
-                    value={text}
-                    className="ssl-certificate-input"
-                    disabled={!record.ssl}
-                    placeholder="Enter the path"
-                    style={{ width: '100%' }}
-                    onChange={(e) => handleBindChange(index, 'ssl_certificate', e.target.value)}
-                />
-            )
-        },
-        {
-            title: 'Action',
-            render: (text, record, index) => (
-                // <Button
-                //     type="danger"
-                //     icon={<DeleteOutlined />}
-                //     onClick={() => handleDeleteBind(index)}
-                // />
-                <Form.Item style={{ marginBottom: "5px" }}>
-                    <PlusCircleOutlined onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px" }} />
-                    &nbsp;&nbsp;&nbsp;
-                    <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(index)} style={{ fontSize: "20px" }} />
-                </Form.Item>
-            )
-        }
-    ];
 
     const handleButtonClick = () => {
         setFrontendConfigurations([...frontendConfigurations, {
@@ -197,35 +181,42 @@ const FrontendConfig = (props) => {
         updatedFrontends[index].binds.push({ address: '', name: '', port: '', ssl_certificate: '', ssl: false });
         setFrontendConfigurations(updatedFrontends);
     };
-    const handleCompressionChange = (value) => {
-        setCompression(value);
-        if (value === 'No') {
-            setCompressionAlgo('');
-            setCompressionTypes(new Set());
-        }
-    };
-    const handleCompressionTypeChange = (type, checked) => {
-        setCompressionTypes((prev) => {
-            const newTypes = new Set(prev);
-            if (checked) {
-                newTypes.add(type);
-            } else {
-                newTypes.delete(type);
-            }
-            return newTypes;
-        });
-    };
-    const handleCompressionAlgoChange = (value) => {
-        setCompressionAlgo(value);
-    };
-    const handleBindChange = (frontendIndex, key, value) => {
+    const handleCompressionChange = (value, index) => {
         const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[frontendIndex].binds = updatedFrontends[frontendIndex].binds.map((bind, bindIndex) => {
-            if (bindIndex === key) {
-                return { ...bind, [key]: value };
-            }
-            return bind;
-        });
+        updatedFrontends[index].compression = value;
+        if (value === "No") {
+            updatedFrontends[index].compressionAlgo = "";
+            updatedFrontends[index].compressionTypes = new Set();
+        }
+        setFrontendConfigurations(updatedFrontends);
+    };
+
+    const handleCompressionTypeChange = (type, checked, index) => {
+        const updatedFrontends = [...frontendConfigurations];
+        const newTypes = new Set(updatedFrontends[index].compressionTypes);
+        if (checked) {
+            newTypes.add(type);
+        } else {
+            newTypes.delete(type);
+        }
+        updatedFrontends[index].compressionTypes = newTypes;
+        setFrontendConfigurations(updatedFrontends);
+    };
+
+    const handleCompressionAlgoChange = (index, value) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[index].compressionAlgo = value;
+        setFrontendConfigurations(updatedFrontends);
+    };
+    const handleFrontendChange = (index, field, value) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[index][field] = value;
+        setFrontendConfigurations(updatedFrontends);
+    };
+
+    const handleBindChange = (frontendIndex, bindIndex, field, value) => {
+        const updatedFrontends = [...frontendConfigurations];
+        updatedFrontends[frontendIndex].binds[bindIndex][field] = value;
         setFrontendConfigurations(updatedFrontends);
     };
 
@@ -236,22 +227,94 @@ const FrontendConfig = (props) => {
         });
         setFrontendConfigurations(updatedFrontends);
     };
+    const styles = {
+        container: {
+            position: "relative",
+            width: "100%",
+            minHeight: "100vh",
+            padding: "20px",
+            backgroundColor: "#dee2e6",
+        },
+        heading: {
+            fontSize: "24px",
+            fontWeight: "bold",
+            marginBottom: "20px",
+        },
+        buttonRow: {
+            marginBottom: "20px",
+        },
+        form: {
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            maxWidth: "1300px",
+            backgroundColor: "#fff",
+            padding: "40px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        },
+        row: {
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "20px",
+        },
+        formItem: {
+            display: "flex",
+            flexDirection: "column",
+            width: "48%",
+        },
+        labelSpan: {
+            fontWeight: "500",
+            display: "inline-block",
+            textAlign: "left",
+            fontSize: "12px",
+        },
+        input: {
+            fontWeight: "500",
+            textAlign: "left",
+            fontSize: "12px",
+            width: "100%",
+            marginTop: "5px",
+        },
+        buttonItem: {
+            display: "flex",
+            justifyContent: "flex-end",
+            marginTop: "20px",
+        },
+        button: {
+            fontWeight: "500",
+            fontSize: "12px",
+        },
+        card: {
+            marginTop: "0.5cm",
+            backgroundColor: "#f0f2f2",
+            width: "100%",
+        },
+        table: {
+            minWidth: 650,
+            size: "smaller",
+        },
+        tableHeader: {
+            padding: "0",
+            height: "0.5cm",
+        },
+        tableCell: {
+            padding: "0",
+            height: "0.5cm",
+        },
+        formItemSmall: {
+            marginBottom: "5px",
+        },
+    };
 
     return (
-        <div style={{ position: 'relative', width: '100%', minHeight: '100vh', padding: '20px', backgroundColor: '#dee2e6' }}>
-            {/* Button in top-right corner */}
-            <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100 }}>
-                <Button type="primary" onClick={handleButtonClick}>
-                    Add Frontend +
-                </Button>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto' }}>
-                <div style={{ width: '100%' }}>
+        <div style={styles.container}>
+            <div style={{ display: "flex", justifyContent: "center", width: "100%", margin: "0 auto" }}>
+                <div style={{ width: "100%" }}>
                     {frontendConfigurations.map((frontend, index) => (
-                        <div key={index} style={{ marginBottom: '20px', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px', backgroundColor: '#fff' }}>
+                        <div key={index} style={{ marginBottom: "20px", padding: "10px", border: "1px solid #d9d9d9", borderRadius: "4px", backgroundColor: "#fff" }}>
                             <Divider />
-                            <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '18px', textAlign: 'center' }}>
+                            <div style={{ marginBottom: "10px", fontWeight: "bold", fontSize: "18px", textAlign: "center" }}>
                                 Frontend {index + 1}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -260,27 +323,24 @@ const FrontendConfig = (props) => {
                                         Frontend Name:</label>
                                     <Input
                                         value={frontend.frontendName}
-                                        onChange={(e) => {
-                                            const updatedFrontends = [...frontendConfigurations];
-                                            updatedFrontends[index].frontendName = e.target.value;
-                                            setFrontendConfigurations(updatedFrontends);
-                                        }}
-                                        style={{ width: '100%' }}
+                                        onChange={(e) => handleFrontendChange(index, "frontendName", e.target.value)}
+                                        style={{ width: "100%" }}
                                     />
                                 </div>
                                 <div style={{ flex: 1, padding: '0 10px' }}>
                                     <label>Default Backend:</label>
                                     <Select
                                         value={Jsondata.backend_names}
-                                        onChange={(value) => {
-                                            const updatedFrontends = [...frontendConfigurations];
-                                            updatedFrontends[index].defaultBackend = value;
-                                            setFrontendConfigurations(updatedFrontends);
-                                        }}
-                                        style={{ width: '100%' }}
+                                        onChange={(value) => handleFrontendChange(index, "defaultBackend", value)}
+                                        style={{ width: "100%" }}
                                     >
                                         <Option value="Select">Select</Option>
-                                        {/* <option value="beckend">backend</option> */}
+                                        {/* {jsonData1 &&
+                                            jsonData1.map((optionData, idx) => (
+                                                <Option key={idx} value={optionData}>
+                                                    {optionData}
+                                                </Option>
+                                            ))} */}
                                     </Select>
                                 </div>
                             </div>
@@ -293,15 +353,9 @@ const FrontendConfig = (props) => {
                                     </Tooltip>
                                     <Select
                                         value={compression}
-                                        onChange={handleCompressionChange}
+                                        onChange={(value) => handleCompressionChange(value, index)}
+                                        style={{ width: "100%" }}
 
-                                        // onChange={(value) => {
-
-                                        //     const updatedFrontends = [...frontendConfigurations];
-                                        //     updatedFrontends[index].compression = value;
-                                        //     setFrontendConfigurations(updatedFrontends);
-                                        // }}
-                                        style={{ width: '100%' }}
                                     >
                                         <Option value="Select Option">Select Option</Option>
                                         <Option value="Yes">Yes</Option>
@@ -312,17 +366,13 @@ const FrontendConfig = (props) => {
                                     <>
                                         {/* // <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}> */}
                                         <div style={{ flex: 1, padding: '0 10px' }}>
-                                            <label>Compression Algo:</label>
+                                            <Tooltip title="Enables the specified compression algorithm for this bind.">
+                                                <label>Compression Algo:</label>
+                                            </Tooltip>
                                             <Select
                                                 value={compressionAlgo}
-                                                onChange={handleCompressionAlgoChange}
-
-                                                // onChange={(value) => {
-                                                //     const updatedFrontends = [...frontendConfigurations];
-                                                //     updatedFrontends[index].compressionAlgo = value;
-                                                //     setFrontendConfigurations(updatedFrontends);
-                                                // }}
-                                                style={{ width: '100%' }}
+                                                onChange={(value) => handleCompressionAlgoChange(value, index)}
+                                                style={{ width: "100%" }}
                                             >
                                                 <Option value="">Select Option</Option>
                                                 <Option value="gzip">gzip</Option>
@@ -335,8 +385,9 @@ const FrontendConfig = (props) => {
 
                                 {compression === 'Yes' && (
                                     <div style={{ marginBottom: '20px', textAlign: '' }}>
-                                        <label>Compression Type:</label>
-                                        <div>
+                                        <Tooltip title="Enables compression for the specified types.">
+                                            <label>Compression Types:</label>
+                                        </Tooltip>                                        <div>
                                             {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
                                                 <Checkbox
                                                     key={type}
@@ -359,7 +410,7 @@ const FrontendConfig = (props) => {
                             <Divider />
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                 <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <label>Mode:</label>
+                                    <label name="mode">Mode:</label>
                                     <Select
                                         value={frontend.mode}
                                         onChange={(value) => {
@@ -376,7 +427,7 @@ const FrontendConfig = (props) => {
                                 <div style={{ flex: 1, padding: '0 10px' }}>
                                     <div className="https-label">
                                         <Tooltip title="HTTP to HTTPS redirection">
-                                            <label name='httpredirect'className="frontendLabel">HTTPS Redirection:</label>
+                                            <label name='httpredirect' className="frontendLabel">HTTPS Redirection:</label>
                                         </Tooltip>
                                     </div>
                                     <Select
@@ -396,34 +447,86 @@ const FrontendConfig = (props) => {
                             </div>
 
                             <Divider />
+                            <div>
+                                <label>Binds:</label>
 
-
-                            <Divider />
-                            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-                                <Button type="primary" onClick={() => handleAddBind(index)}>
-                                    Add Bind +
+                                {frontend.binds.map((bind, bindIndex) => (
+                                    <div key={bindIndex} style={{ display: "flex", marginBottom: "10px" }}>
+                                      
+                                        <div style={{ flex: 1, padding: "0 10px" }}>
+                                            <label name="address">Bind Address:</label>
+                                            <Input
+                                                value={bind.address}
+                                                onChange={(e) => handleBindChange(index, bindIndex, "address", e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, padding: "0 10px" }}>
+                                            <label name="bindname">Bind Name:</label>
+                                            <Input
+                                                value={bind.name}
+                                                onChange={(e) => handleBindChange(index, bindIndex, "address", e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, padding: "0 10px" }}>
+                                            <label name="port">Bind Port:</label>
+                                            <Input
+                                                value={bind.port}
+                                                onChange={(e) => handleBindChange(index, bindIndex, "port", e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, padding: "0 10px" }}>
+                                            <label>SSL Certificate:</label>
+                                            <Input
+                                                value={bind.ssl_certificate}
+                                                onChange={(e) => handleBindChange(index, bindIndex, "ssl_certificate", e.target.value)}
+                                            />
+                                        </div>
+                                        {/* <div style={{ flex: 1, padding: "0 10px" }}>
+                                            <Checkbox
+                                                checked={bind.ssl}
+                                                onChange={(e) => handleBindChange(index, bindIndex, "ssl", e.target.checked)}
+                                            >
+                                                SSL
+                                            </Checkbox>
+                                        </div> */}
+                                        <div style={{ flex: "none", padding: "0 10px" }}>
+                                            <Button
+                                                type="danger"
+                                                icon={<MinusCircleFilled />}
+                                                onClick={() => handleClickOnMinusOfButton(index, bindIndex)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                                }
+                                < Button
+                                    type="dashed"
+                                    icon={< PlusCircleFilled />}
+                                    onClick={() => handleClickOnPlusButton(index)}
+                                >
+                                    Add Bind
                                 </Button>
                             </div>
 
                             <Divider />
-                            <div>
-                                <Table
-                                    dataSource={frontend.binds}
-                                    columns={columns}
-                                    rowKey="address"
-                                    pagination={false}
-                                    className="table"
-                                />
-                            </div>
+                            <Button type="danger" onClick={() => handleDeleteFrontend(index)}>
+                                Delete Frontend
+                            </Button>
                         </div>
-                    ))}
-                </div>
-            </div>
+
+                    ))
+                    }
+                    <Button type="primary" onClick={handleAddFrontend}>
+                        Add Frontend
+                    </Button>
+                </div >
+            </div >
+        </div >
 
 
 
-            <Divider />
-        </div>
+
+
     );
 };
 
