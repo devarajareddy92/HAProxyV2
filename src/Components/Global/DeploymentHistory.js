@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CurrentConfigView = () => {
+const DeploymentHistory = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +42,7 @@ const CurrentConfigView = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Current HAProxy Configuration</h1>
+      <h1 style={styles.header}>Deployment History</h1>
       <pre style={styles.data}>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
@@ -86,4 +86,4 @@ const styles = {
   },
 };
 
-export default CurrentConfigView;
+export default DeploymentHistory;

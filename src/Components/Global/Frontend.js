@@ -330,17 +330,18 @@ console.log("the data is this",Jsondata);
                                 <div style={{ flex: 1, padding: '0 10px' }}>
                                     <label>Default Backend:</label>
                                     <Select
-                                        value={Jsondata.backend_names}
+                                        // value={Jsondata.backend_names}
                                         onChange={(value) => handleFrontendChange(index, "defaultBackend", value)}
                                         style={{ width: "100%" }}
+                                        placeholder="Select option"
                                     >
-                                        <Option value="Select">Select</Option>
-                                        {/* {jsonData1 &&
-                                            jsonData1.map((optionData, idx) => (
+                                        {/* <Option value="Select">Select</Option> */}
+                                        {Jsondata.backend_names &&
+                                            Jsondata.backend_names.map((optionData, idx) => (
                                                 <Option key={idx} value={optionData}>
                                                     {optionData}
                                                 </Option>
-                                            ))} */}
+                                            ))}
                                     </Select>
                                 </div>
                             </div>
