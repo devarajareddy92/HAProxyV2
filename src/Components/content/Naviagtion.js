@@ -31,6 +31,8 @@ import SwitchingRulesComponent from "../Global/SwitchingRules";
 import HomePage from "../Global/HomePage";
 import CurrentConfigView from "../Global/CurrentConfigView";
 import SubMenu from "antd/es/menu/SubMenu";
+import JournalLogs from "../Global/JournalLogs";
+import DeploymentHistory from "../Global/DeploymentHistory";
 
 const Navigation = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -87,7 +89,7 @@ const Navigation = () => {
         </Link>
       </Menu.Item>
       <Menu.Item key="3">
-        <a href="#option3">Deployment History</a>
+        <a href="/deploymenthistory">Deployment History</a>
       </Menu.Item>
       <SubMenu key="sub2" title="HA Proxy Actions">
         <Menu.Item
@@ -104,7 +106,7 @@ const Navigation = () => {
         </Menu.Item>
       </SubMenu>
       <Menu.Item key="5">
-        <a href="#option5">HA Proxy Journal Logs</a>
+        <a href="journallogs">HA Proxy Journal Logs</a>
       </Menu.Item>
       <SubMenu key="sub1" title="Help">
         <Menu.Item key="6">
@@ -137,7 +139,7 @@ const Navigation = () => {
 
         <Nav className="flex-column pt-2">
           <Nav.Item>
-            <Nav.Link href="/">
+            <Nav.Link href="/home">
               <FontAwesomeIcon icon={faHome} className="mr-3" />
               Home
             </Nav.Link>
@@ -203,7 +205,7 @@ const Navigation = () => {
             HAPROXY CONFIG MANAGER
           </div>
           <div className={`navbar-links ${isNavbarOpen ? "active" : ""}`}>
-            <a href="/">Home</a>
+            <a href="/home">Home</a>
             <Dropdown overlay={optionsMenu}>
               <a
                 className="ant-dropdown-link"
@@ -228,7 +230,11 @@ const Navigation = () => {
         <div className={`content ${isSidebarOpen ? "content-shift" : ""}`}>
           {window.location.href.includes("global") ? (
             <GlobalContainer />
-          ) : window.location.href.includes("frontend") ? (
+          )
+          : window.location.href.includes("/home") ? (
+            <HomePage />
+          )
+           : window.location.href.includes("frontend") ? (
             <FrontendConfig />
           ) : window.location.href.includes("default") ? (
             <Default />
@@ -240,10 +246,12 @@ const Navigation = () => {
             <AclComponent />
           ) : window.location.href.includes("switchingrules") ? (
             <SwitchingRulesComponent />
-          ) : window.location.href.includes("/") ? (
-            <HomePage />
           ) : window.location.href.includes("current-config-view") ? (
             <CurrentConfigView />
+          ) : window.location.href.includes("journallogs") ? (
+            <JournalLogs />
+          ) : window.location.href.includes("deploymenthistory") ? (
+            <DeploymentHistory/>
           ) : null}
         </div>
       </div>

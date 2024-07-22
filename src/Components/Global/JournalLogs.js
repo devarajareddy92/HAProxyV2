@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CurrentConfigView = () => {
+const JournalLogs = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -8,7 +8,7 @@ const CurrentConfigView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m');
+        const response = await fetch('http://10.101.104.140:5053/journal');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -42,7 +42,7 @@ const CurrentConfigView = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Current HAProxy Configuration</h1>
+      <h1 style={styles.header}>Journal Logs</h1>
       <pre style={styles.data}>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
@@ -70,7 +70,7 @@ const styles = {
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
     fontSize: '14px',
     overflow: 'auto',
-    maxHeight: '400px', // Ensure large data is scrollable
+    maxHeight: '400px', // Added to ensure large data is scrollable
   },
   loading: {
     textAlign: 'center',
@@ -86,4 +86,4 @@ const styles = {
   },
 };
 
-export default CurrentConfigView;
+export default JournalLogs;
