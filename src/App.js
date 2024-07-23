@@ -23,6 +23,9 @@ const App = () => {
     { path: "/backend", element: <Naviagtion /> },
     { path: "/acl", element: <Naviagtion /> },
     { path: "/switchingrules", element: <Naviagtion /> },
+    { path: "/current-config-view", element: <Naviagtion /> },
+    { path: "/journallogs", element: <Naviagtion /> },
+    { path: "/deploymenthistory", element: <Naviagtion /> },
 
 
   ]

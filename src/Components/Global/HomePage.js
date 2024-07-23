@@ -12,7 +12,7 @@ const HomePage = (props) => {
     const [runningSince, setRunningSince] = useState('');
     const [logsText, setLogsText] = useState('');
     const [messages, setMessages] = useState([]);
-console.log('protokenis this',props.protoken);
+console.log('protokenis this',localStorage.getItem("proToken"));
     useEffect(() => {
         // Fetch data for activeStatus, runningSince, logsText, and messages
         axios.get('/api/status') // Replace with your API endpoint

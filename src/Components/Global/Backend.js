@@ -40,36 +40,6 @@ const Backend = (props) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // jsonData[backendindex] =[//jsonData[backendindex].server.data.length
-    //     {
-    //         "backend": {
-    //             "balance": {
-    //                 "algorithm": "roundrobin"
-    //             },
-    //             "mode": "http",
-    //             "name": "NPS_Backend"
-    //         },
-    //         "server": {
-    //             "_version": 411,
-    //             "data": [
-    //                 {
-    //                     "address": "10.101.104.91",
-    //                     "check": "enabled",
-    //                     "name": "NPS_Server_91",
-    //                     "port": 8083
-    //                 },
-    //                 {
-    //                     "address": "10.101.104.140",
-    //                     "check": "enabled",
-    //                     "name": "NPS_Server_140",
-    //                     "port": 8083
-    //                 }
-    //             ]
-    //         }
-    //     },
-    
-
-    // ]
 
 
     useEffect(() => {

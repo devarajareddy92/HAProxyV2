@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { Form, Input, Button, Typography, Row, Layout } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import IpAddress from '../../IPConfig';
 import { useNavigate } from 'react-router-dom';
-
+ 
 import axios from 'axios';
-
+ 
 const { Title } = Typography;
 const { Content } = Layout;
-
+ 
 const LoginForm = () => {
     const IP = IpAddress();
     const [username, setUserName] = useState('');
@@ -33,10 +34,11 @@ const LoginForm = () => {
                 console.log("response", response);
                 if (response.status === 200 && response.data.error === 0) {
                     const proToken = response.data.pro_token;
-                    navigate("/home", { state: {proToken: proToken } });
+                    localStorage.setItem("proToken",proToken)
+                    navigate("/home",);
                     // navigate("/default", { state: { proToken } });
                     // navigate("/backend", { state: { proToken } });
-
+ 
                 } else {
                     setError("Invalid Credentials");
                 }
@@ -46,7 +48,7 @@ const LoginForm = () => {
                 setError("An error occurred during login.");
             });
     };
-
+ 
     return (
         <Layout className="layout">
             <Content className="content-container">
@@ -92,5 +94,6 @@ const LoginForm = () => {
         </Layout>
     );
 };
-
+ 
 export default LoginForm;
+ 

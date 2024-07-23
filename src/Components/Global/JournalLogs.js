@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import IpAddress from '../../IPConfig';
 
 const JournalLogs = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const IP = IpAddress();
+  const [jsonData, setJsonData] = useState({});
+  const [loadingFlag, setLoadingFlag] = useState(false);
   const [error, setError] = useState(null);
 
+  const localStorageKey = localStorage.getItem('proToken');
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://10.101.104.140:5053/journal');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setLoading(false);
+    setLoadingFlag(true);
+    fetch(IP + "journal", {
+      headers: {
+        "Authorization": localStorageKey
       }
-    };
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error === 0) {
+          setJsonData(data);
+          console.log(data);
+        } else if (data.error === 1) {
+          // navigate('/');
+        }
+        setLoadingFlag(false);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setError(error);
+        setLoadingFlag(false);
+      });
+  }, [IP, localStorageKey]);
 
-    fetchData();
-  }, []);
-
-  if (loading) {
+  if (loadingFlag) {
     return (
       <div style={styles.loading}>
         Loading...
       </div>
     );
   }
+
+  const logs = jsonData.logs;
+  console.log(logs);
+
+
 
   if (error) {
     return (
@@ -43,7 +57,9 @@ const JournalLogs = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Journal Logs</h1>
-      <pre style={styles.data}>{JSON.stringify(data, null, 2)}</pre>
+     
+        <p>{jsonData.logs}</p>
+     
     </div>
   );
 };
@@ -70,7 +86,7 @@ const styles = {
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
     fontSize: '14px',
     overflow: 'auto',
-    maxHeight: '400px', // Added to ensure large data is scrollable
+    maxHeight: '400px',
   },
   loading: {
     textAlign: 'center',

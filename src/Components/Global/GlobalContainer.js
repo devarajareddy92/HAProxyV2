@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Select, Tooltip, Row, Col, Spin } from 'antd';
 import '../CssFolder/StyleCss.css';
@@ -5,10 +6,10 @@ import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LoadingOutlined } from '@ant-design/icons';
-
+ 
 const { Option } = Select;
-
-const GlobalContainer = (props) => {
+ 
+const GlobalContainer = () => {
     const IP = IpAddress();
     const [tlsSecurity, setTlsSecurity] = useState('');
     const [showMaxMinVersions, setShowMaxMinVersions] = useState(false);
@@ -18,11 +19,11 @@ const GlobalContainer = (props) => {
     const [Jsondata, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
-    console.log('protokenis this',props.protoken);
-
+    // console.log('protokenis this',props.protoken);
+ 
     const location = useLocation();
     const navigate = useNavigate();
-
+ 
     const inputStyle = {
         fontWeight: '500',
         textAlign: 'left',
@@ -43,9 +44,9 @@ const GlobalContainer = (props) => {
         width: '100%',
         maxWidth: '1300px',
         backgroundColor: '#fff',
-
+ 
     };
-
+ 
     const containerStyle = {
         position: 'relative',
         width: '100%',
@@ -60,27 +61,20 @@ const GlobalContainer = (props) => {
         fontSize: '18px',
         fontWeight: 'bold',
     };
-
+ 
     const buttonGroupStyle = {
         textAlign: 'left',
         marginTop: '20px',
     };
-
+ 
     const handleSubmit = (values) => {
         console.log('Form values: ', values);
         alert('Form submitted');
     };
-
-
-    var protokenGlobal;
-
-    try {
-        protokenGlobal = props.protoken
-        
-    } catch (exception) {
-        navigate("/")
-    }
-    console.log("the token is ",protokenGlobal)
+ 
+ 
+    const localStoragekey = localStorage.getItem('proToken')
+    // console.log("the token is ", localStoragekey)
     useEffect(() => {
         // Update the screen width whenever the window is resized
         const handleResize = () => {
@@ -92,7 +86,7 @@ const GlobalContainer = (props) => {
             window.removeEventListener('resize', handleResize);
         };
     }, []);
-
+ 
     const decodeEntities = (encodedString) => {
         const textArea = document.createElement('textarea');
         textArea.innerHTML = encodedString;
@@ -113,7 +107,7 @@ const GlobalContainer = (props) => {
         setLoadingFlag(true)
         fetch(IP + "global", {
             headers: {
-                "Authorization": protokenGlobal
+                "Authorization": localStoragekey
             }
         })
             .then(response => response.json())
@@ -123,7 +117,7 @@ const GlobalContainer = (props) => {
                     setJsonData(data)
                     console.log("The data is", data);
                     setLoadingFlag(false)
-
+ 
                 } else if (data.error === 1) {
                     // navigate('/');
                 }
@@ -132,7 +126,7 @@ const GlobalContainer = (props) => {
                 console.error('Error fetching data:', error);
             });
     }, [form]);
-
+ 
     useEffect(() => {
         form.setFieldsValue({ [`maxconn`]: Jsondata?.data?.data?.maxconn })
         form.setFieldValue({ [`tlsSecurity`]: "Allow" })
@@ -140,20 +134,20 @@ const GlobalContainer = (props) => {
         form.setFieldsValue({ [`minVersion`]: Jsondata?.data?.data?.runtime_apis[0]?.ssl_min_ver })
         form.setFieldsValue({ [`ciphers`]: Jsondata?.data?.data?.runtime_apis[0]?.ciphers })
         form.setFieldsValue({ [`IP Address`]: Jsondata?.data?.data?.runtime_apis[0]?.address })
-
-
+ 
+ 
     }, [Jsondata]);
-
+ 
     const handleSave = () => {
         form.validateFields()
             .then(values => {
                 setLoadingFlag(true);
                 console.log('Saved values:', values);
-
+ 
                 // Make a POST request to save the form data
                 axios.post(IP + "save_global", values, {
                     headers: {
-                        'Authorization': protokenGlobal,
+                        'Authorization': localStoragekey,
                         'Content-Type': 'application/json'
                     }
                 })
@@ -176,11 +170,11 @@ const GlobalContainer = (props) => {
                 console.log('Validate Failed:', info);
             });
     };
-
+ 
     // console.log("Jsondata?.data?.data?.maxconn", Jsondata?.data?.data && Jsondata?.runtime_apis?.data)
-
+ 
     return (
-
+ 
         <div
             style={{
                 padding: "20px",
@@ -229,7 +223,7 @@ const GlobalContainer = (props) => {
                             label={<span style={{ marginBottom: "20px" }}>Max Connection <a style={{ color: "red" }}>*</a></span>}
                         >
                             <Input
-
+ 
                                 style={{
                                     fontWeight: "500",
                                     textAlign: "left",
@@ -237,11 +231,11 @@ const GlobalContainer = (props) => {
                                     width: "100%",
                                     maxWidth: screenWidth > 1000 ? "400px" : "300px",
                                 }}
-
+ 
                                 type="number" />
-
+ 
                         </Form.Item>
-
+ 
                         <Form.Item
                             name="tlsSecurity"
                             label="TLS Security:"
@@ -266,7 +260,7 @@ const GlobalContainer = (props) => {
                         </Form.Item>
                         {/* {tlsSecurity === 'Allow' && ( */}
                         {showMaxMinVersions && (
-
+ 
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <Form.Item
@@ -321,7 +315,7 @@ const GlobalContainer = (props) => {
                                     </Form.Item>
                                 </Col>
                             </Row>
-
+ 
                         )}
                         <Row gutter={16}>
                             <Col span={12}>
@@ -354,7 +348,7 @@ const GlobalContainer = (props) => {
                                         width: "100%",
                                         maxWidth: "300px",
                                     }}
-
+ 
                                 >
                                     <Input
                                         style={{
@@ -366,8 +360,8 @@ const GlobalContainer = (props) => {
                                 </Form.Item>
                             </Col>
                         </Row>
-
-
+ 
+ 
                         <Form.Item style={{ marginTop: "20px" }}>
                             <Button type="primary" htmlType="submit">
                                 Final Submit
@@ -384,8 +378,9 @@ const GlobalContainer = (props) => {
                 </div>
             </div >
         </div>
-
+ 
     );
 };
-
+ 
 export default GlobalContainer;
+ 
