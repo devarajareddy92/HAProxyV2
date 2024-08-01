@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Input, Form, Checkbox, Divider, Tooltip, Button } from 'antd';
-import { PlusCircleFilled, MinusCircleFilled, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { Select, Input, Form, Checkbox, Divider, message, Row, Col, Tooltip, Button } from 'antd';
+import { PlusCircleFilled, MinusCircleFilled, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -18,17 +18,21 @@ const FrontendConfig = (props) => {
     const IP = IpAddress();
     const [selectedFrontend, setSelectedFrontend] = useState({});
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-    const [compression, setCompression] = useState('Select Option');
+    const [compression, setCompression] = useState([]);
     const [Addfrontendplusbutton, setAddFrontendPlusButton] = useState(1);
 
     const [compressionAlgo, setCompressionAlgo] = useState('');
-    const [compressionTypes, setCompressionTypes] = useState(new Set());
+    // const [compressionTypes, setCompressionTypes] = useState(new Set());
     const [form] = Form.useForm();
     const [Jsondata, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
+    // const initialCheckedValues = Jsondata?.frontend_data[bindIndex]?.frontend?.compression?.types || [];
+    const [checkedValues, setCheckedValues] = useState([]);
+    const [isReadyToSend, setIsReadyToSend] = useState(false);
+
     const [frontendConfigurations, setFrontendConfigurations] = useState([
 
         {
@@ -55,43 +59,77 @@ const FrontendConfig = (props) => {
     const handleClickOnPlusButton = (frontendIndex) => {
         // setAddFrontendPlusButton(Addfrontendplusbutton + 1)
 
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[frontendIndex].binds.push({
-            address: "",
-            name: "",
-            port: "",
-            ssl_certificate: "",
-            ssl: false,
+        const newBindData = [...Jsondata.frontend_data[frontendIndex].bind.data, {}];
+        console.log("newBindData", newBindData);
+        setJsonData({
+            ...Jsondata,
+            frontend_data: Jsondata.frontend_data.map((frontend, idx) =>
+                idx === frontendIndex ? { ...frontend, bind: { ...frontend.bind, data: newBindData } } : frontend
+            )
         });
-        setFrontendConfigurations(updatedFrontends);
     };
 
-    const handleClickOnMinusOfButton = (frontendIndex, bindIndex) => {
+
+    const newCheckedValues = (bindIndex) => {
+        newCheckedValues = Jsondata?.frontend_data[bindIndex]?.frontend?.compression?.types || [];
+        setCheckedValues(new Set(newCheckedValues));
+    }
+
+
+    const handleCheckboxChange = (type) => {
+        setCheckedValues(prevCheckedValues => {
+            const isChecked = prevCheckedValues.includes(type);
+            if (isChecked) {
+                return prevCheckedValues.filter((checkedType) => checkedType !== type);
+            } else {
+                return [...prevCheckedValues, type];
+            }
+        });
+        setIsReadyToSend(true);
+        console.log("handleCheckboxChange", checkedValues.includes(type));
+    };
+    useEffect(() => {
+        console.log("Updated checkedValues:", checkedValues);
+    }, [checkedValues]);
+
+    const handleClickOnMinusOfButton = (frontendIndex, Index) => {
         // setAddFrontendPlusButton(Addfrontendplusbutton - 1)
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[frontendIndex].binds = updatedFrontends[frontendIndex].binds.filter(
-            (_, i) => i !== bindIndex
-        );
-        setFrontendConfigurations(updatedFrontends);
+        const newBindData = Jsondata.frontend_data[frontendIndex].bind.data.filter((_, idx) => idx !== Index);
+        setJsonData({
+            ...Jsondata,
+            frontend_data: Jsondata.frontend_data.map((frontend, idx) =>
+                idx === frontendIndex ? { ...frontend, bind: { ...frontend.bind, data: newBindData } } : frontend
+            )
+        });
 
     };
     const handleAddFrontend = () => {
-        setFrontendConfigurations([
-            ...frontendConfigurations,
-            {
-                frontendName: "",
-                defaultBackend: "Select",
-                compression: "",
-                compressionAlgo: "",
-                mode: "",
-                httpRedirect: "",
-                compressionTypes: new Set(),
-                binds: [
-                    { address: "", name: "", port: "", ssl_certificate: "", ssl: false },
-                ],
+        console.log("josondata.frontend", Jsondata);
+        const newFrontend = {
+            bind: {
+                data: [
+                    { address: '', name: '', port: '', SSLCert: '' }
+                ]
             },
-        ]);
+            frontend: {
+                name: '',
+                mode: '',
+                compression: { algorithms: [""], types: [""] },
+            },
+            httpredirect: false,
+        };
+        const tempdata = {
+            ...Jsondata,
+            frontend_data: [...Jsondata.frontend_data, newFrontend]
+        };
+
+        console.log("tempdata===>", tempdata);
+
+        // Update the state immutably
+        setJsonData(tempdata);
+
     };
+    console.log("Afteradding", Jsondata);
 
     const handleDeleteFrontend = (index) => {
         const updatedFrontends = frontendConfigurations.filter(
@@ -99,68 +137,55 @@ const FrontendConfig = (props) => {
         );
         setFrontendConfigurations(updatedFrontends);
     };
-    var protokenbackend;
 
-    try {
-        protokenbackend = props.protoken
-    } catch (exception) {
-        navigate("/")
-    }
+
+    const localStoragekey = localStorage.getItem('proToken')
+    // console.log("the token is ", localStoragekey)
+
     useEffect(() => {
         setLoadingFlag(true)
         fetch(IP + "frontend", {
             headers: {
-                "Authorization": protokenbackend
+                "Authorization": localStoragekey
             }
         })
             .then(response => response.json())
             .then(data => {
-                console.log("Jsondata", Jsondata?.data);
+                console.log("JsondataJsondataJsondataJsondata", data?.frontend_data);
                 if (data.error === 0) {
                     setJsonData(data)
+                    var allcompressionvalues = []
+                    for (let i = 0; i < data.frontend_data.length; i++) {
+                        // console.log("datalength", data.frontend_data.length)
+                        // console.log("data?.frontend_data[i]?.frontend?.compression",data?.frontend_data[i]?.frontend?.compression)
+                        var allcompression = data?.frontend_data[i]?.frontend?.compression
+                        if (allcompression) {
+                            allcompressionvalues.push('Yes')
+                        } else {
+                            allcompressionvalues.push('No')
+                        }
+                        console.log("allcompressionvalues", allcompression);
+                        // console.log("setCompression",compression);
+
+                    }
+                    setCompression(allcompressionvalues);
+
+
                     console.log("The data is", data);
                     setLoadingFlag(false)
                 } else if (data.error === 1) {
-                    // navigate('/');
+                    message.info("Token Expired or Unauthorized")
+                    navigate('/');
                 }
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
                 setLoadingFlag(false);
             });
-    }, [form]);
-    console.log("Jsondata?.data?.data?.maxconn", Jsondata?.frontend_data?.frontend);
+    }, []);
+    console.log("Jsondata?.data?.data?.maxconn", Jsondata?.frontend_data?.frontend?.compression);
+    console.log("setCompression>", compression);
 
-    useEffect(() => {
-        Jsondata?.frontend_data?.forEach((frontendData, i) => {
-            console.log("the length is", Jsondata.frontend_data.length);
-            const backendNames = Jsondata.backend_names;
-            console.log("backend", backendNames);
-
-            if (frontendData?.frontend) {
-                frontendData?.bind?.data.forEach((bind, j) => {
-                    console.log("serversserversservers", bind);
-
-                    form.setFieldsValue({
-                        [`frontendname${i}`]: frontendData.frontend?.name,
-                        [`mode${i}`]: frontendData.frontend?.mode,
-                        [`httpredirect${i}`]: frontendData.frontend?.http_redirect,
-
-                        [`bindname${j}`]: bind.name,
-                        [`address${j}`]: bind.address,
-                        [`port${j}`]: bind.port,
-                 
-
-                      
-
-                    });
-                });
-
-            }
-        });
-    }, [Jsondata]
-);
-console.log("the data is this",Jsondata);
 
 
     const handleButtonClick = () => {
@@ -182,42 +207,20 @@ console.log("the data is this",Jsondata);
         setFrontendConfigurations(updatedFrontends);
     };
     const handleCompressionChange = (value, index) => {
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[index].compression = value;
-        if (value === "No") {
-            updatedFrontends[index].compressionAlgo = "";
-            updatedFrontends[index].compressionTypes = new Set();
-        }
-        setFrontendConfigurations(updatedFrontends);
+        const newJsonData = { ...compression };
+        newJsonData[index] = value;
+        console.log("newJsonData", newJsonData);
+        // newJsonData.frontend_data[index].frontend.compression = value;
+        setCompression(newJsonData);
     };
 
-    const handleCompressionTypeChange = (type, checked, index) => {
-        const updatedFrontends = [...frontendConfigurations];
-        const newTypes = new Set(updatedFrontends[index].compressionTypes);
-        if (checked) {
-            newTypes.add(type);
-        } else {
-            newTypes.delete(type);
-        }
-        updatedFrontends[index].compressionTypes = newTypes;
-        setFrontendConfigurations(updatedFrontends);
-    };
 
-    const handleCompressionAlgoChange = (index, value) => {
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[index].compressionAlgo = value;
-        setFrontendConfigurations(updatedFrontends);
-    };
-    const handleFrontendChange = (index, field, value) => {
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[index][field] = value;
-        setFrontendConfigurations(updatedFrontends);
-    };
 
-    const handleBindChange = (frontendIndex, bindIndex, field, value) => {
-        const updatedFrontends = [...frontendConfigurations];
-        updatedFrontends[frontendIndex].binds[bindIndex][field] = value;
-        setFrontendConfigurations(updatedFrontends);
+
+    const handleCompressionAlgoChange = (value, index) => {
+        const newJsonData = { ...Jsondata };
+        newJsonData.frontend_data[index].frontend.compression.algorithms[0] = value;
+        setJsonData(newJsonData);
     };
 
     const handleDeleteBind = (index) => {
@@ -307,226 +310,520 @@ console.log("the data is this",Jsondata);
         },
     };
 
+    useEffect(() => {
+        if (Jsondata?.frontend_data) {
+            for (let i = 0; i < Jsondata.frontend_data.length; i++) {
+                const frontendData = Jsondata.frontend_data[i];
+
+                console.log("the length is", Jsondata.frontend_data.length);
+                const frontendbackendNames = Jsondata.backend_names;
+                console.log("frontendbackendNames", frontendbackendNames);
+
+                if (frontendData?.frontend) {
+                    console.log("Frontend Name:", frontendData?.frontend?.name);
+                    console.log("Frontend Mode:", frontendData?.frontend?.mode);
+                    console.log("HTTP Redirect:", frontendData?.http_redirect);
+                    console.log("compression:compression:", Jsondata?.frontend_data[0]?.frontend?.compression?.algorithms[0]);
+                    console.log("compression:type", Jsondata?.frontend_data[0]?.frontend?.compression?.types);
+
+                    console.log("HTTP Redirect:", frontendData?.http_redirect);
+                    form.setFieldsValue({
+                        [`frontendname_${i}`]: frontendData?.frontend?.name,
+                        [`mode_${i}`]: frontendData?.frontend?.mode,
+                        [`httpredirect_${i}`]: frontendData?.http_redirect,
+                        [`DefaultBackend_${i}`]: frontendData?.frontend?.default_backend,
+                        [`compressionAlgo_${i}`]: frontendData?.frontend?.compression?.algorithms[0],
+                        [`compressionType_${i}`]: frontendData?.frontend?.compression?.types,
+                    })
+                    if (frontendData?.bind?.data) {
+                        for (let j = 0; j < frontendData.bind.data.length; j++) {
+                            const bind = frontendData.bind.data[j];
+                            console.log("serversserversservers", bind);
+
+                            form.setFieldsValue({
+                                // [`frontendname_${i}`]: frontendData.frontend?.name,
+                                // [`mode_${i}`]: frontendData.frontend?.mode,
+                                // [`httpredirect_${i}`]: frontendData?.http_redirect,
+                                // [`DefaultBackend_${i}`]: frontendData?.frontend?.default_backend,
+                                // [`compressionAlgo_${i}`]: frontendData?.frontend?.compression?.algorithms[0],
+                                // [`compressionType_${i}`]: frontendData?.frontend?.compression?.types,
+
+                                [`bindAddress_${i}_${j}`]: bind?.address,
+                                [`bindname_${i}_${j}`]: bind?.name,
+                                [`portnumber_${i}_${j}`]: bind?.port,
+                                [`SSLCert_${i}_${j}`]: '/home/ipmcloud/ssl_folder/new2/mydomain.pem',
+
+
+                            });
+
+                        }
+                    }
+                }
+            }
+        }
+    }, [Jsondata]);
+
+    console.log("the data is this", Jsondata);
+
+    const handleModeChange = (value, index) => {
+        const updatedData = [...Jsondata];
+        updatedData[index].data.mode = value;
+        setJsonData(updatedData);
+    };
+    const onFinish = (values) => {
+        console.log('Received values:', values);
+        var MainSavejsondata = []
+
+        for (let i = 0; i < Jsondata.frontend_data.length; i++) {
+            var frontendvalues = {}
+            const updatedValues = {
+                ...values,
+                types: values[`compressionType_${i}`],
+            };
+            console.log("updatedValues", updatedValues);
+            //  var frontendData = Jsondata.frontend_data[i];
+            //  console.log("frontendDatafrontendData",frontendData);
+            frontendvalues.name = form.getFieldValue(`frontendname_${i}`);
+            frontendvalues.mode = form.getFieldValue(`mode_${i}`);
+            // frontendvalues.http_redirect = form.getFieldValue(`httpredirect_${i}`);
+            frontendvalues.default_backend = form.getFieldValue(`DefaultBackend_${i}`);
+            frontendvalues.algorithms = [];
+            frontendvalues.algorithms[0] = form.getFieldValue(`compressionAlgo_${i}`);
+            frontendvalues.types = checkedValues;
+
+            console.log("backendnamebackendname", frontendvalues);
+            var bindnamesforsave = [];
+            for (let j = 0; j < Jsondata.frontend_data[i].bind.data.length; j++) {
+                var binddataForMap = {}
+
+                binddataForMap.address = form.getFieldValue(`bindAddress_${i}_${j}`);
+                binddataForMap.name = form.getFieldValue(`bindname_${i}_${j}`);
+                binddataForMap.port = parseInt(form.getFieldValue(`portnumber_${i}_${j}`) || 0);
+                binddataForMap.ssl_certificate = form.getFieldValue(`SSLCert_${i}_${j}`);
+
+                // binddataForMap.check = form.getFieldValue(`check_${i}_${j}`);
+                console.log("serverForMap", binddataForMap);
+                bindnamesforsave.push(binddataForMap);
+            }
+            console.log("servernamesforsave", bindnamesforsave);
+
+            var combinedData = {
+                frontend_data: frontendvalues,
+                bind: bindnamesforsave,
+                http_redirect: form.getFieldValue(`httpredirect_${i}`)
+
+            };
+            MainSavejsondata.push(combinedData)
+            console.log("combinedData", MainSavejsondata)
+        }
+
+
+        axios.post(IP + "save_frontend", MainSavejsondata, {
+            headers: {
+                'Authorization': localStoragekey,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('Save response:', response);
+                setLoadingFlag(false);
+                if (response.status === 200) {
+                    alert('Saved successfully!');
+                } else {
+                    alert('Save failed: ' + response.data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                setLoadingFlag(false);
+                alert('An error occurred while saving.');
+            });
+
+    };
+
+    console.log("Jsondata?.frontend_data?.length", Jsondata);
+    console.log("the valueis ", Jsondata.frontend_data)
+
     return (
         <div style={styles.container}>
-            <div style={{ display: "flex", justifyContent: "center", width: "100%", margin: "0 auto" }}>
-                <div style={{ width: "100%" }}>
-                    {frontendConfigurations.map((frontend, index) => (
-                        <div key={index} style={{ marginBottom: "20px", padding: "10px", border: "1px solid #d9d9d9", borderRadius: "4px", backgroundColor: "#fff" }}>
-                            <Divider />
-                            <div style={{ marginBottom: "10px", fontWeight: "bold", fontSize: "18px", textAlign: "center" }}>
-                                Frontend {index + 1}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <label name="frontendname">
-                                        Frontend Name:</label>
+            <Form layout="vertical" style={styles.form}
+                form={form}
+                onFinish={onFinish}
+            >
+                <h3 >Frontend</h3>
+                &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;
+                <Button type="primary" style={{ alignContent: 'center', width: "20%" }} onClick={handleAddFrontend}>
+                    Add Frontend
+                </Button>
+                &nbsp;&nbsp;&nbsp;
+                {Array.from({ length: Jsondata?.frontend_data?.length }, (_, bindIndex) => (
+
+                    <div key={bindIndex} style={{ marginBottom: "20px", padding: "10px", border: "1px solid #d9d9d9", borderRadius: "4px", backgroundColor: "#fff" }}>
+                        <Button type="danger" style={{ float: "right", backgroundColor: "#d93737", borderColor: "red" }}
+                            icon={<DeleteOutlined style={{ color: "white" }} />}
+                            onClick={() => handleDeleteFrontend(bindIndex)}
+                        >
+
+                        </Button>
+                        <Row gutter={16} style={{ marginBottom: '20px' }}>
+                            <Col span={8}>
+                                <Form.Item name={`frontendname_${bindIndex}`}
+                                    label="Frontend Name" required>
                                     <Input
-                                        value={frontend.frontendName}
-                                        onChange={(e) => handleFrontendChange(index, "frontendName", e.target.value)}
-                                        style={{ width: "100%" }}
+
+                                        placeholder="Enter the Frontend value"
+                                        // value={backend.data.name}
+                                        // onChange={(e) => handleNameChange(e.target.value, backendIndex)}
+                                        required
+                                        style={styles.input}
                                     />
-                                </div>
-                                <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <label>Default Backend:</label>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    label={
+                                        <Tooltip title="Specify the load-balancing algorithm for distributing traffic among backend servers">
+                                            Default Backend :
+                                        </Tooltip>
+                                    }
+
+                                    name={`DefaultBackend_${bindIndex}`}
+                                    required
+                                >
                                     <Select
-                                        // value={Jsondata.backend_names}
-                                        onChange={(value) => handleFrontendChange(index, "defaultBackend", value)}
+                                        value={Jsondata?.backend_names}
+                                        // onChange={(value) => handleFrontendChange(bindIndex, "defaultBackend", value)}
                                         style={{ width: "100%" }}
                                         placeholder="Select option"
                                     >
                                         {/* <Option value="Select">Select</Option> */}
-                                        {Jsondata.backend_names &&
-                                            Jsondata.backend_names.map((optionData, idx) => (
+                                        {Jsondata?.backend_names &&
+                                            Jsondata?.backend_names.map((optionData, idx) => (
                                                 <Option key={idx} value={optionData}>
                                                     {optionData}
                                                 </Option>
                                             ))}
                                     </Select>
-                                </div>
-                            </div>
-
-                            <Divider />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <Tooltip title="Enables compression for responses sent to clients, reducing bandwidth usage. Note: Applicable only for HTTP">
-                                        <label>Compression:</label>
-                                    </Tooltip>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item name={`mode_${bindIndex}`} label="Mode">
                                     <Select
-                                        value={compression}
-                                        onChange={(value) => handleCompressionChange(value, index)}
-                                        style={{ width: "100%" }}
-
-                                    >
-                                        <Option value="Select Option">Select Option</Option>
-                                        <Option value="Yes">Yes</Option>
-                                        <Option value="No">No</Option>
-                                    </Select>
-                                </div>
-                                {compression === 'Yes' && (
-                                    <>
-                                        {/* // <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}> */}
-                                        <div style={{ flex: 1, padding: '0 10px' }}>
-                                            <Tooltip title="Enables the specified compression algorithm for this bind.">
-                                                <label>Compression Algo:</label>
-                                            </Tooltip>
-                                            <Select
-                                                value={compressionAlgo}
-                                                onChange={(value) => handleCompressionAlgoChange(value, index)}
-                                                style={{ width: "100%" }}
-                                            >
-                                                <Option value="">Select Option</Option>
-                                                <Option value="gzip">gzip</Option>
-                                                <Option value="deflate">deflate</Option>
-                                                <Option value="raw-deflate">raw-deflate</Option>
-                                            </Select>
-                                        </div>
-                                    </>
-                                )}
-
-                                {compression === 'Yes' && (
-                                    <div style={{ marginBottom: '20px', textAlign: '' }}>
-                                        <Tooltip title="Enables compression for the specified types.">
-                                            <label>Compression Types:</label>
-                                        </Tooltip>                                        <div>
-                                            {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
-                                                <Checkbox
-                                                    key={type}
-                                                    checked={frontend.compressionTypes.has(type)}
-                                                    onChange={(e) => handleCompressionTypeChange(type, e.target.checked)}
-
-
-                                                    style={{ marginRight: '8px' }}
-                                                >
-                                                    {type}
-                                                </Checkbox>
-                                            ))}
-                                        </div>
-
-                                    </div>
-                                )}
-                            </div>
-
-
-                            <Divider />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <label name="mode">Mode:</label>
-                                    <Select
-                                        value={frontend.mode}
-                                        onChange={(value) => {
-                                            const updatedFrontends = [...frontendConfigurations];
-                                            updatedFrontends[index].mode = value;
-                                            setFrontendConfigurations(updatedFrontends);
-                                        }}
+                                        value={Jsondata.frontend_data.mode}
+                                        // onChange={(value) => {
+                                        //     const updatedFrontends = [...frontendConfigurations];
+                                        //     updatedFrontends[bindIndex].mode = value;
+                                        //     setFrontendConfigurations(updatedFrontends);
+                                        // }}
                                         style={{ width: '100%' }}
                                     >
                                         <Option value="HTTP">HTTP</Option>
                                         <Option value="TCP">TCP</Option>
                                     </Select>
-                                </div>
-                                <div style={{ flex: 1, padding: '0 10px' }}>
-                                    <div className="https-label">
-                                        <Tooltip title="HTTP to HTTPS redirection">
-                                            <label name='httpredirect' className="frontendLabel">HTTPS Redirection:</label>
-                                        </Tooltip>
-                                    </div>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Form.Item name={`httpredirect_${bindIndex}`} label="HTTP Redirect">
                                     <Select
-                                        value={frontend.httpRedirect}
-                                        onChange={(value) => {
-                                            const updatedFrontends = [...frontendConfigurations];
-                                            updatedFrontends[index].httpRedirect = value;
-                                            setFrontendConfigurations(updatedFrontends);
-                                        }}
+                                        // value={Jsondata?.frontend_data?.http_redirect}
+                                        // onChange={(value) => {
+                                        //     const updatedFrontends = [...frontendConfigurations];
+                                        //     updatedFrontends[bindIndex].httpRedirect = value;
+                                        //     setFrontendConfigurations(updatedFrontends);
+                                        // }}
                                         style={{ width: '100%' }}
                                     >
                                         <Option value="">Select Option</Option>
                                         <Option value={true}>True</Option>
                                         <Option value={false}>False</Option>
                                     </Select>
-                                </div>
-                            </div>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item name={`compression_${bindIndex}`} label="Compression">
+                                    <Select
+                                        value={Jsondata?.frontend_data[bindIndex]?.frontend?.compression}
+                                        placeholder="Select Option"
+                                        onChange={(value) => handleCompressionChange(value, bindIndex)}
+                                    >
+                                        <Option value="Yes">Yes</Option>
+                                        <Option value="No">No</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
 
-                            <Divider />
-                            <div>
-                                <label>Binds:</label>
 
-                                {frontend.binds.map((bind, bindIndex) => (
-                                    <div key={bindIndex} style={{ display: "flex", marginBottom: "10px" }}>
-                                      
-                                        <div style={{ flex: 1, padding: "0 10px" }}>
-                                            <label name="address">Bind Address:</label>
-                                            <Input
-                                                value={bind.address}
-                                                onChange={(e) => handleBindChange(index, bindIndex, "address", e.target.value)}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1, padding: "0 10px" }}>
-                                            <label name="bindname">Bind Name:</label>
-                                            <Input
-                                                value={bind.name}
-                                                onChange={(e) => handleBindChange(index, bindIndex, "address", e.target.value)}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1, padding: "0 10px" }}>
-                                            <label name="port">Bind Port:</label>
-                                            <Input
-                                                value={bind.port}
-                                                onChange={(e) => handleBindChange(index, bindIndex, "port", e.target.value)}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1, padding: "0 10px" }}>
-                                            <label>SSL Certificate:</label>
-                                            <Input
-                                                value={bind.ssl_certificate}
-                                                onChange={(e) => handleBindChange(index, bindIndex, "ssl_certificate", e.target.value)}
-                                            />
-                                        </div>
-                                        {/* <div style={{ flex: 1, padding: "0 10px" }}>
-                                            <Checkbox
-                                                checked={bind.ssl}
-                                                onChange={(e) => handleBindChange(index, bindIndex, "ssl", e.target.checked)}
+                            {compression[bindIndex] === 'Yes' && (
+                                <>
+                                    <Divider />
+                                    {/* <Row gutter={8}> */}
+                                    <Col span={8}>
+                                        <Form.Item name={`compressionAlgo_${bindIndex}`} label="Compression Algo">
+                                            <Select
+                                                defaultValue={Jsondata?.frontend_data[bindIndex]?.frontend?.compression?.algorithms[0] || ''}
+                                            // onChange={(value) => handleCompressionAlgoChange(value, bindIndex)}
                                             >
-                                                SSL
-                                            </Checkbox>
-                                        </div> */}
-                                        <div style={{ flex: "none", padding: "0 10px" }}>
-                                            <Button
-                                                type="danger"
-                                                icon={<MinusCircleFilled />}
-                                                onClick={() => handleClickOnMinusOfButton(index, bindIndex)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))
-                                }
-                                < Button
-                                    type="dashed"
-                                    icon={< PlusCircleFilled />}
-                                    onClick={() => handleClickOnPlusButton(index)}
-                                >
-                                    Add Bind
-                                </Button>
-                            </div>
+                                                <Option value="gzip">gzip</Option>
+                                                <Option value="deflate">deflate</Option>
+                                                <Option value="raw-deflate">raw-deflate</Option>
+                                            </Select>
+                                        </Form.Item>
+                                    </Col>
+                                    {/* </Row> */}
+                                    <Col span={8}>
+                                        <Form.Item name={`compressionType_${bindIndex}`}
+                                            label="Compression Type"
+                                        >
+                                            {['text/css', 'text/html', 'text/javascript', 'application/javascript', 'text/plain', 'text/xml', 'application/json'].map((type) => (
+                                                <Checkbox
+                                                    defaultValue={Jsondata?.frontend_data[bindIndex]?.frontend?.compression?.types || false}
+                                                    key={type}
+                                                    checked={checkedValues.includes(type)}
+                                                    // checked={checkedValues.some(checkedCheckbox => checkedCheckbox.value === type.value)}
+                                                    onChange={() => handleCheckboxChange(type)}
 
-                            <Divider />
-                            <Button type="danger" onClick={() => handleDeleteFrontend(index)}>
-                                Delete Frontend
-                            </Button>
+                                                    style={{ marginRight: '8px' }}
+                                                >
+                                                    {type}
+                                                </Checkbox>
+                                            ))}
+
+                                        </Form.Item>
+                                    </Col>
+
+                                </>
+                            )}
+
+                        </Row>
+                        <div>
+                            <label>Binds:</label>
+                            <TableContainer>
+                                <Table sx={styles.table} aria-label="a dense table">
+                                    <TableHead sx={styles.tableHeader}>
+                                        <TableRow sx={styles.tableHeader}>
+                                            <TableCell sx={styles.tableCell}>
+                                                <label
+                                                    name="bindAddress:"
+                                                    style={{
+                                                        marginLeft: "0.2cm",
+                                                        fontSize: "smaller",
+                                                    }}
+                                                >
+                                                    Bind Address:
+                                                </label>
+                                            </TableCell>
+                                            <TableCell sx={styles.tableCell}>
+                                                <label name="bindname" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                    Bind Name
+                                                </label>
+                                            </TableCell>
+                                            <TableCell sx={styles.tableCell}>
+                                                <label name="portnumber" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                    Bind Port
+                                                </label>
+                                            </TableCell>
+                                            <TableCell sx={styles.tableCell}>
+                                                <label name="check" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                    SSL Certificate
+                                                </label>
+                                            </TableCell>
+                                            <TableCell sx={styles.tableCell}>
+                                                <label style={{ fontSize: "smaller" }}>Add/Delete</label>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {Array.from({ length: Jsondata?.frontend_data[bindIndex]?.bind?.data.length !== 0 ? Jsondata?.frontend_data[bindIndex]?.bind?.data.length : 1 }, (_, Index) => (
+
+                                            < TableRow key={Index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
+                                                <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                    <Form.Item
+                                                        name={`bindAddress_${bindIndex}_${Index}`}
+                                                        style={styles.formItemSmall}
+                                                    // rules={[{ required: true, message: 'Please input the Bind Address' }]}
+                                                    >
+                                                        <Input
+                                                            placeholder="Bind Address"
+                                                            style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                        />
+                                                    </Form.Item>
+                                                </TableCell>
+                                                <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                    <Form.Item
+                                                        name={`bindname_${bindIndex}_${Index}`}
+                                                        style={styles.formItemSmall}
+                                                    // rules={[{ required: true, message: 'Please input the bind name' }]}
+                                                    >
+                                                        <Input
+                                                            placeholder="Bind Name"
+                                                            style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                        />
+                                                    </Form.Item>
+                                                </TableCell>
+                                                <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                    <Form.Item
+                                                        name={`portnumber_${bindIndex}_${Index}`}
+                                                        style={styles.formItemSmall}
+                                                    // rules={[{ required: true, message: 'Please input the Port Number' }]}
+                                                    >
+                                                        <Input
+                                                            placeholder="Port Number"
+                                                            style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                        />
+                                                    </Form.Item>
+                                                </TableCell>
+                                                <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                    <Form.Item
+
+                                                        name={`SSLCert_${bindIndex}_${Index}`}
+                                                        style={styles.formItemSmall}
+                                                    // rules={[{ required: true, message: 'Please select an SSL Certificate' }]}
+                                                    >
+                                                        <Input
+                                                            placeholder="SSL Certificate"
+
+                                                            style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                        />
+
+                                                    </Form.Item>
+                                                </TableCell>
+
+                                                <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                    <Form.Item style={styles.formItemSmall}>
+                                                        <PlusCircleFilled onClick={() => handleClickOnPlusButton(bindIndex)} style={{ fontSize: "20px", color: "#1677ff" }} />
+                                                        &nbsp;&nbsp;&nbsp;
+                                                        <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)" }}
+                                                            onClick={() => {
+                                                                const deleteBindData = {
+
+                                                                    frontend: form.getFieldValue(`frontendname_${bindIndex}`),
+                                                                    bind: form.getFieldValue(`bindname_${bindIndex}_${Index}`)
+                                                                };
+                                                                console.log("deleteServerData", deleteBindData);
+                                                                axios.post(IP + '/delete_bind', deleteBindData, {
+
+                                                                    headers: {
+                                                                        'Authorization': localStoragekey,
+                                                                        'Content-Type': 'application/json',
+                                                                    },
+                                                                })
+                                                                    .then(response => {
+                                                                        if (response.status === 200) {
+                                                                            if (response.data.error === 0) {
+                                                                                message.success('Server Deleted successfully!');
+                                                                                // removeBackend(backendIndex);
+                                                                                window.location.reload(true);
+                                                                            } else if (response.data.error === 1) {
+                                                                                if (response.data.msg === "You are not a sudo user!") {
+                                                                                    alert("You are not sudo user!");
+                                                                                } else {
+                                                                                    console.error('Unexpected error value:', response.data.msg);
+                                                                                }
+                                                                            }
+                                                                        } else if (response.status === 404) {
+                                                                            console.error('Server not found');
+                                                                        } else {
+                                                                            console.error('Unexpected response status:', response.status);
+                                                                        }
+                                                                    })
+                                                                    .catch(error => {
+                                                                        console.error('Error:', error);
+                                                                    });
+                                                            }}
+                                                        />
+                                                    </Form.Item>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </div>
 
-                    ))
-                    }
-                    <Button type="primary" onClick={handleAddFrontend}>
-                        Add Frontend
+
+                        <Divider />
+
+                    </div>
+
+                ))}
+                <Form.Item style={{ display: 'flex', justifyContent: 'center', }} >
+                    <Button type="default" onClick={() => {
+                        form
+                            .validateFields()
+                            .then(values => {
+                                onFinish(values);
+                            })
+                            .catch(info => {
+                                console.log('Validate Failed:', info);
+                            });
+                    }}
+                        style={{ alignContent: 'center', marginLeft: '10px' }}>
+                        Save
                     </Button>
-                </div >
-            </div >
+                    &nbsp;&nbsp;&nbsp;
+                    <Button style={{ alignContent: 'center' }} type="primary"
+                        onClick={() => {
+                            fetch(IP + 'deploy_config', {
+                                headers: {
+                                    'Authorization': localStoragekey,
+                                }
+                            })
+                                .then(response => {
+                                    console.log("responseresponse", response);
+                                    if (response.status === 200) {
+                                        message.success('Transaction Successful!');
+                                        fetch(IP + 'regenerate', {
+                                            headers: {
+                                                'Authorization': localStoragekey,
+                                            }
+                                        })
+                                            .then(response => {
+                                                console.log("Regenerate response:", response);
+                                                return response.json();
+                                            })
+                                            .then(data => {
+                                                console.log("responseresponse", data);
+                                                if (data.error === 0) {
+                                                    const proToken = data.pro_token;
+                                                    localStorage.setItem("proToken", proToken)
+                                                    navigate("/home",);
+                                                    console.log('regenerate Successful!');
+                                                } else if (data.error === 1) {
+                                                    console.log("Unauthorized");
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                            });
+                                    } else if (response.status === 401) {
+                                        message.info("Unauthorized");
+                                    } else if (response.status === 204) {
+                                        console.error('Transaction not found or Dataplane is down.');
+                                    } else {
+                                        console.error('Unexpected response status:', response.status);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                });
+
+
+                        }}
+                    >
+                        Final Submit
+                    </Button>
+                </Form.Item>
+
+                {/* <Button type="primary" style={{ alignContent: 'center' }} onClick={handleAddFrontend}>
+                    Add Frontend
+                </Button> */}
+
+            </Form >
         </div >
-
-
-
-
 
     );
 };

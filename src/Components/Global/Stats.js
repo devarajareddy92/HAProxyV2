@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "antd";
-import { Button, Form, Input, Select, Divider ,message} from "antd";
+import { Button, Form, Input, Select, Divider, message } from "antd";
 import { UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
 
 // import '../CssFolder/StyleCss.css';
@@ -20,7 +20,7 @@ const Stats = (props) => {
 
     const location = useLocation();
     const navigate = useNavigate();
-  
+
     useEffect(() => {
         const handleResize = () => {
             setScreenWidth(window.innerWidth);
@@ -31,75 +31,74 @@ const Stats = (props) => {
         };
     }, []);
 
-    var protokenstats;
+    const localStoragekey = localStorage.getItem('proToken')
+    // console.log("the token is ", localStoragekey)
+    useEffect(() => {
+        setLoadingFlag(true)
+        fetch(IP + "stats", {
+            headers: {
+                "Authorization": localStoragekey
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Fetched data:", data);
+                if (data.error === 0 && data.data.length > 1) {
+                    const stats = data.data[1];
+                    if (stats.frontend.stats_options) {
+                        form.setFieldsValue({
+                            bindaddress: stats.bind[0].address,
+                            bindport: stats.bind[0].port,
+                            refreshrate: parseInt(stats.frontend.stats_options.stats_refresh_delay) / 1000,
+                            urll: stats.frontend.stats_options.stats_uri_prefix.substring(1),
+                            username: stats.frontend.stats_options.stats_auths[0].user,
+                            password: stats.frontend.stats_options.stats_auths[0].passwd,
+                        });
 
-  try {
-    protokenstats = props.protoken
-  } catch (exception) {
-    navigate("/")
-  }
-  useEffect(() => {
-    fetchStats();
-  }, []);
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(IP+"stats",{
-      headers: {
-        'Authorization': protokenstats,
-        'Content-Type': 'application/json'
-    },
-});
-      const data = response.data;
+                        setStatsEnabled(true);
+                    } else {
+                        setStatsEnabled(false);
+                    }
+                } else {
+                    setStatsEnabled(false);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching stats:', error);
+                message.error('Failed to fetch stats.');
+            });
+    }, [form]);
 
-      if (data.length > 0) {
-        const stats = data[0];
-        form.setFieldsValue({
-          bindaddress: stats.bind[0].address,
-          bindport: stats.bind[0].port,
-          refreshrate: parseInt(stats.frontend.stats_options.stats_refresh_delay) / 1000,
-          urll: stats.frontend.stats_options.stats_uri_prefix.substring(1),
-          username: stats.frontend.stats_options.stats_auths[0].user,
-          password: stats.frontend.stats_options.stats_auths[0].passwd,
-        });
-        setStatsEnabled(true);
-      } else {
-        setStatsEnabled(false);
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      message.error('Failed to fetch stats.');
-    }
-  };
-  const onFinish = async (values) => {
-    setLoading(true);
-    const data = statsEnabled ? {
-      bindaddress: values.bindaddress,
-      bindport: values.bindport,
-      refreshrate: parseInt(values.refreshrate) * 1000,
-      urll: `/${values.urll}`,
-      username: values.username,
-      password: values.password,
-    } : { stats_action: false };
+    const onFinish = async (values) => {
+        setLoading(true);
+        const data = statsEnabled ? {
+            bindaddress: values.bindaddress,
+            bindport: values.bindport,
+            refreshrate: parseInt(values.refreshrate) * 1000,
+            urll: `/${values.urll}`,
+            username: values.username,
+            password: values.password,
+        } : { stats_action: false };
 
-    try {
-      const response = await axios.post('/save_stats', data,{
-        headers: {
-            'Authorization': protokenstats,
-            'Content-Type': 'application/json',
-        },
-    });
-      if (response.data.error === 0) {
-        message.success('Data saved successfully. Final submit required.');
-      } else {
-        message.error(response.data.message);
-      }
-    } catch (error) {
-      console.error('Error saving stats:', error);
-      message.error('Failed to save stats.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            const response = await axios.post('/save_stats', data, {
+                headers: {
+                    'Authorization': localStoragekey,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.data.error === 0) {
+                message.success('Data saved successfully. Final submit required.');
+            } else {
+                message.error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Error saving stats:', error);
+            message.error('Failed to save stats.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     const styles = {
@@ -173,7 +172,7 @@ const Stats = (props) => {
         button: {
             fontWeight: "500",
             fontSize: "12px",
-           
+
         },
     };
     return (
@@ -204,11 +203,11 @@ const Stats = (props) => {
                             </a>
                         </label>
 
-                        <Form  form={form}  layout="horizontal" style={styles.form} onFinish={onFinish}>
+                        <Form form={form} layout="horizontal" style={styles.form} onFinish={onFinish}>
                             <div style={styles.row}>
 
                                 <Form.Item
-                                 name="bindaddress"
+                                    name="bindaddress"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Bind Address <span style={styles.required}>*</span>
@@ -222,7 +221,7 @@ const Stats = (props) => {
                                     />
                                 </Form.Item>
                                 <Form.Item
-                                 name="bindaddress"
+                                    name="bindaddress"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Bind Port <span style={styles.required}>*</span>
@@ -236,7 +235,7 @@ const Stats = (props) => {
                             </div>
                             <div style={styles.row}>
                                 <Form.Item
-                                 name="refreshrate"
+                                    name="refreshrate"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Refresh Rate <span style={styles.required}>*</span>
@@ -250,7 +249,7 @@ const Stats = (props) => {
                                     />
                                 </Form.Item>
                                 <Form.Item
-                                name="urll"
+                                    name="urll"
                                     label={
                                         <span style={styles.labelSpan}>
                                             URL <span style={styles.required}>*</span>
@@ -263,7 +262,7 @@ const Stats = (props) => {
                             </div>
                             <div style={styles.row}>
                                 <Form.Item
-                                 name="username"
+                                    name="username"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Username <span style={styles.required}>*</span>
@@ -275,7 +274,7 @@ const Stats = (props) => {
                                 </Form.Item>
 
                                 <Form.Item
-                                name="password"
+                                    name="password"
                                     label={
                                         <span style={styles.labelSpan}>
                                             Password <span style={styles.required}>*</span>
@@ -291,14 +290,62 @@ const Stats = (props) => {
                                 </Form.Item>
                             </div>
                             <Form.Item style={styles.buttonItem}>
-                                <Button type="primary" htmlType="submit" style={styles.button }>
+                                <Button type="primary" htmlType="submit" style={styles.button}>
                                     Save
                                 </Button>
                             </Form.Item>
                         </Form>
                         <Divider />
-                        <div style={{ textAlign: "left", paddingBottom: "20px" }}>
-                            <Button type="primary" style={{ marginTop: "20px" }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', }}>
+                            <Button type="primary" style={{ marginTop: "20px" }}
+                                onClick={() => {
+                                    fetch(IP + 'deploy_config', {
+                                        headers: {
+                                            'Authorization': localStoragekey,
+                                        }
+                                    })
+                                        .then(response => {
+                                            console.log("responseresponse", response);
+                                            if (response.status === 200) {
+                                                message.success('Transaction Successful!');
+                                                fetch(IP + 'regenerate', {
+                                                    headers: {
+                                                        'Authorization': localStoragekey,
+                                                    }
+                                                })
+                                                .then(response => {
+                                                    console.log("Regenerate response:", response);
+                                                    return response.json();
+                                                })
+                                                    .then(data => {
+                                                        console.log("responseresponse", data);
+                                                        if (data.error === 0) {
+                                                            const proToken = data.pro_token;
+                                                            localStorage.setItem("proToken", proToken)
+                                                            navigate("/home",);
+                                                            console.log('regenerate Successful!');
+                                                        } else if (data.error === 1) {
+                                                            console.log("Unauthorized");
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error:', error);
+                                                    });
+                                            } else if (response.status === 401) {
+                                                message.info("Unauthorized");
+                                            } else if (response.status === 204) {
+                                                console.error('Transaction not found or Dataplane is down.');
+                                            } else {
+                                                console.error('Unexpected response status:', response.status);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                        });
+
+                                  
+                                }}
+                            >
                                 Final Submit
                             </Button>
                         </div>

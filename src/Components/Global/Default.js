@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, Select, Button, Divider, Spin } from "antd";
+import { Form, InputNumber, Select, Button, Divider, message, Spin } from "antd";
 // import "./Default.css";
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
@@ -8,7 +8,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
-const Default = (props) => {
+const Default = () => {
     const IP = IpAddress();
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [error, setError] = useState(null);
@@ -75,23 +75,20 @@ const Default = (props) => {
     };
 
     const buttonGroupStyle = {
-        textAlign: 'left',
-        marginTop: '20px',
+        display: 'flex',
+         justifyContent: 'center',
+        // textAlign: 'left',
+        // marginTop: '20px',
     };
 
-    var protokenGlobal;
-
-    try {
-        protokenGlobal = props.protoken
-    } catch (exception) {
-        navigate("/")
-    }
+    const localStoragekey = localStorage.getItem('proToken')
+    // console.log("the token is ", localStoragekey)
 
     useEffect(() => {
         setLoadingFlag(true)
         fetch(IP + "default", {
             headers: {
-                "Authorization": protokenGlobal
+                "Authorization": localStoragekey
             }
         })
             .then(response => response.json())
@@ -131,7 +128,7 @@ const Default = (props) => {
                 // Make a POST request to save the form data
                 axios.post(IP + "save_default", values, {
                     headers: {
-                        'Authorization': protokenGlobal,
+                        'Authorization': localStoragekey,
                         'Content-Type': 'application/json'
                     }
                 })
@@ -209,23 +206,65 @@ const Default = (props) => {
                             </Form.Item>
 
                             <Form.Item style={buttonGroupStyle}>
-                                <Button type="default" style={{ marginRight: '10px' }}>Previous</Button>
+                                {/* <Button type="default" style={{ marginRight: '10px' }}>Previous</Button> */}
                                 <Button type="primary" onClick={handleSave} style={{ marginLeft: '10px' }}>
                                     Save
                                 </Button>
                                 &nbsp;&nbsp;&nbsp;
-                                <Button type="default">Next</Button>
+                                <Button type="primary" href="/deploy_config" style={{ marginTop: '20px' }} 
+                                    onClick={() => {
+                                        fetch(IP + 'deploy_config', {
+                                            headers: {
+                                                'Authorization': localStoragekey,
+                                            }
+                                        })
+                                            .then(response => {
+                                                console.log("responseresponse", response);
+                                                if (response.status === 200) {
+                                                    message.success('Transaction Successful!');
+                                                    fetch(IP + 'regenerate', {
+                                                        headers: {
+                                                            'Authorization': localStoragekey,
+                                                        }
+                                                    })
+                                                    .then(response => {
+                                                        console.log("Regenerate response:", response);
+                                                        return response.json();
+                                                    })
+                                                        .then(data => {
+                                                            console.log("responseresponse", data);
+                                                            if (data.error === 0) {
+                                                                const proToken = data.pro_token;
+                                                                localStorage.setItem("proToken", proToken)
+                                                                navigate("/home",);
+                                                                console.log('regenerate Successful!');
+                                                            } else if (data.error === 1) {
+                                                                console.log("Unauthorized");
+                                                            }
+                                                        })
+                                                        .catch(error => {
+                                                            console.error('Error:', error);
+                                                        });
+                                                } else if (response.status === 401) {
+                                                    message.info("Unauthorized");
+                                                } else if (response.status === 204) {
+                                                    console.error('Transaction not found or Dataplane is down.');
+                                                } else {
+                                                    console.error('Unexpected response status:', response.status);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                            });
+
+                                           
+                                    }}
+                                    >
+                                        Final Submit
+                                </Button>
                             </Form.Item>
                         </Form>
 
-                        <Divider />
-                        <div style={{ textAlign: 'left', paddingBottom: '20px' }}>
-
-
-                            <Button type="primary" style={{ marginTop: '20px' }} htmlType="submit">
-                                Final Submit
-                            </Button>
-                        </div>
                     </div>
 
                 </div>

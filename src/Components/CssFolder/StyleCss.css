@@ -286,3 +286,38 @@ body, html {
 .login-form-button {
   width: 100%;
 }
+.nav {
+  --bs-nav-link-color: #f6fbff; 
+  --bs-nav-link-hover-color: #fff; 
+  --bs-nav-link-disabled-color: #e8eff5; 
+  display: flex;
+  flex-direction: column;
+  padding-top: 2rem;
+}
+
+
+.nav .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* .nav .nav-link:hover {
+  background-color: #495057;
+  color: #fff;
+} */
+
+.nav .nav-link .mr-3 {
+  margin-right: 0.75rem;
+}
+
+.nav .nav-link:hover {
+  background-color: #495057;
+  color: #fff
+}
+.nav .nav-link:disabled {
+  color: #fff
+}

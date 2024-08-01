@@ -7,23 +7,23 @@ const { Title } = Typography;
 const { Panel } = Collapse;
 const { Content } = Layout;
 
-const HomePage = (props) => {
+const HomePage = () => {
     const [activeStatus, setActiveStatus] = useState('');
     const [runningSince, setRunningSince] = useState('');
     const [logsText, setLogsText] = useState('');
     const [messages, setMessages] = useState([]);
-console.log('protokenis this',props.protoken);
+console.log('localStorage this',localStorage.getItem('proToken'));
     useEffect(() => {
         // Fetch data for activeStatus, runningSince, logsText, and messages
-        axios.get('/api/status') // Replace with your API endpoint
-            .then(response => {
-                setActiveStatus(response.data.active_status);
-                setRunningSince(response.data.running_since);
-                setLogsText(response.data.logs_text);
-                setMessages(response.data.messages);
-            })
-            .catch(error => console.error('Error fetching status data:', error));
-    }, []);
+    //     axios.get('/api/status') // Replace with your API endpoint
+    //         .then(response => {
+    //             setActiveStatus(response.data.active_status);
+    //             setRunningSince(response.data.running_since);
+    //             setLogsText(response.data.logs_text);
+    //             setMessages(response.data.messages);
+    //         })
+    //         .catch(error => console.error('Error fetching status data:', error));
+     }, []);
 
     return (
         <Layout>

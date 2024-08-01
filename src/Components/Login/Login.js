@@ -33,7 +33,8 @@ const LoginForm = () => {
                 console.log("response", response);
                 if (response.status === 200 && response.data.error === 0) {
                     const proToken = response.data.pro_token;
-                    navigate("/home", { state: {proToken: proToken } });
+                    localStorage.setItem("proToken",proToken)
+                    navigate("/home",);
                     // navigate("/default", { state: { proToken } });
                     // navigate("/backend", { state: { proToken } });
 

@@ -61,14 +61,7 @@ const Naviagtion = () => {
     };
   }, []);
 
-  var protokenforall;
-
-  try {
-    protokenforall = location.state.proToken
-    console.log("protokenforall", protokenforall)
-  } catch (exception) {
-    navigate("/")
-  }
+  const localStoragekey = localStorage.getItem('proToken')
   const toggleNavbar = () => {
     setNavbarOpen(!isNavbarOpen);
   };
@@ -91,34 +84,34 @@ const Naviagtion = () => {
   const sideclickaction = (flag) => {
 
     if (flag === "home") {
-      navigate("/home", { state: { proToken: protokenforall } });
+      navigate("/home");
     }
     else if (flag === "global") {
-      navigate("/global", { state: { proToken: protokenforall } });
+      navigate("/global");
     }
     else if (flag === "default") {
-      navigate("/default", { state: { proToken: protokenforall } });
+      navigate("/default");
     }
     else if (flag === "backend") {
-      navigate("/backend", { state: { proToken: protokenforall } });
+      navigate("/backend");
     }
     else if (flag === "frontend") {
-      navigate("/frontend", { state: { proToken: protokenforall } });
+      navigate("/frontend");
     }
     else if (flag === "acl") {
-      navigate("/acl", { state: { proToken: protokenforall } });
+      navigate("/acl");
     }
     else if (flag === "switchingrules") {
-      navigate("/switchingrules", { state: { proToken: protokenforall } });
+      navigate("/switchingrules");
     }
     else if (flag === "stats") {
-      navigate("/stats", { state: { proToken: protokenforall } });
+      navigate("/stats");
     }
   }
   const optionsMenu = (
     <Menu>
       <Menu.Item key="1">
-        <a href="#option1">Configure LB</a>
+        <a href="/home">Configure LB</a>
       </Menu.Item>
       <Menu.Item key="2">
         <Link as={Link} to="/current-config-view">
@@ -162,7 +155,7 @@ const Naviagtion = () => {
   return (
 
     <div style={{ display: "flex" }}>
-      <div className={classNames('sidebar', { 'is-open': isSidebarOpen })}>
+      <div className={classNames('sidebar', { 'is-open': isSidebarOpen })} >
         <div className="sidebar-header d-flex justify-content-between align-items-center">
           <h3>HAPROXY</h3>
           <Button
@@ -237,7 +230,7 @@ const Naviagtion = () => {
 
       <div className="content">
         <nav className="navbar">
-          <Button type="primary" onClick={toggleSidebar}>
+          <Button type="primary"style={{  background:" #195576"}} onClick={toggleSidebar}>
             <FontAwesomeIcon icon={faAlignLeft} />
           </Button>
           <div className="navbar-logo" style={{ paddingLeft: '20px' }}>HAPROXY CONFIG MANAGER</div>
@@ -251,33 +244,33 @@ const Naviagtion = () => {
                 Options <FontAwesomeIcon icon={faBars} />
               </a>
             </Dropdown>
-            <a href="#status">Status</a>
+
             <a style={{ paddingRight: "40px" }} href="/">Logout</a>
           </div>
           <div className="navbar-toggle" onClick={toggleNavbar}>
-            <FontAwesomeIcon icon={isNavbarOpen ? faTimes : faBars} className="navbar-toggle-icon" />
+            <FontAwesomeIcon  icon={isNavbarOpen ? faTimes : faBars} className="navbar-toggle-icon" />
           </div>
         </nav>
 
-        <div className={`content ${isSidebarOpen ? 'content-shift' : ''}`}>
+        <div className={`content ${isSidebarOpen ? 'content-shift' : ''}`} style={{height:"15cm",overflow:"auto"}}>
 
           {window.location.href.includes("global") ?
-            <GlobalContainer protoken={protokenforall} />
+            <GlobalContainer />
             : window.location.href.includes("frontend") ?
-              <FrontendConfig protoken={protokenforall} />
+              <FrontendConfig />
               : window.location.href.includes("default") ?
-                < Default protoken={protokenforall} />
+                < Default />
                 :
                 window.location.href.includes("stats") ?
-                  <Stats protoken={protokenforall} />
+                  <Stats />
                   : window.location.href.includes("backend") ?
-                    <Backend protoken={protokenforall} />
+                    <Backend />
                     : window.location.href.includes("acl") ?
-                      <AclComponent protoken={protokenforall} />
+                      <AclComponent />
                       : window.location.href.includes("switchingrules") ?
-                        <SwitchingRulesComponent protoken={protokenforall} />
+                        <SwitchingRulesComponent />
                         : window.location.href.includes("/home") ?
-                          <HomePage protoken={protokenforall} />
+                          <HomePage />
                           : window.location.href.includes("current-config-view") ?
                             <CurrentConfigView />
                             : window.location.href.includes("journallogs") ?

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Select, Card, List, Spin, Tooltip, Button, Form, Row, Col, Radio } from 'antd';
+import { Input, Select, Card, List, Modal, message, Spin, Tooltip, Button, Form, Row, Col, Radio, Divider } from 'antd';
 import {
     PlusCircleFilled,
     MinusCircleFilled,
     PlusCircleOutlined,
+    DeleteOutlined,
     MinusCircleOutlined,
     DownOutlined,
     UpOutlined,
@@ -22,7 +23,6 @@ import TableRow from '@mui/material/TableRow';
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 const { Option } = Select;
 
 const Backend = (props) => {
@@ -31,46 +31,14 @@ const Backend = (props) => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [backendIndexplus, setBackendIndexPlus] = useState(1);
     const [ServerIndexplus, setServerIndexplus] = useState(1);
-    const [contactPersonDeatilsIsOpen, setContactPersonDetailsIsOpen] = useState(false);
+    const [contactPersonDeatilsIsOpen, setContactPersonDetailsIsOpen] = useState(true);
     const [form] = Form.useForm();
     const [JsonData, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
-
+    const [formValues, setFormValues] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
-
-    // jsonData[backendindex] =[//jsonData[backendindex].server.data.length
-    //     {
-    //         "backend": {
-    //             "balance": {
-    //                 "algorithm": "roundrobin"
-    //             },
-    //             "mode": "http",
-    //             "name": "NPS_Backend"
-    //         },
-    //         "server": {
-    //             "_version": 411,
-    //             "data": [
-    //                 {
-    //                     "address": "10.101.104.91",
-    //                     "check": "enabled",
-    //                     "name": "NPS_Server_91",
-    //                     "port": 8083
-    //                 },
-    //                 {
-    //                     "address": "10.101.104.140",
-    //                     "check": "enabled",
-    //                     "name": "NPS_Server_140",
-    //                     "port": 8083
-    //                 }
-    //             ]
-    //         }
-    //     },
-    
-
-    // ]
-
 
     useEffect(() => {
         const handleResize = () => {
@@ -82,19 +50,14 @@ const Backend = (props) => {
         };
     }, []);
 
-    var protokenbackend;
-
-    try {
-        protokenbackend = props.protoken
-    } catch (exception) {
-        navigate("/")
-    }
+    const localStoragekey = localStorage.getItem('proToken')
+    console.log("the token is ", localStoragekey)
 
     useEffect(() => {
         setLoadingFlag(true)
         fetch(IP + "backend", {
             headers: {
-                "Authorization": protokenbackend
+                "Authorization": localStoragekey
             }
         })
             .then(response => response.json())
@@ -105,6 +68,7 @@ const Backend = (props) => {
                     console.log("The data is", data);
                     setLoadingFlag(false)
                 } else if (data.error === 1) {
+                    message.info("Token Expired or UNAUTHORIZED")
                     navigate('/');
                 }
             })
@@ -112,7 +76,7 @@ const Backend = (props) => {
                 console.error('Error fetching data:', error);
                 setLoadingFlag(false);
             });
-    }, [form]);
+    }, []);
 
     // console.log("Jsondata?.data?.data?.maxconn", Jsondata)
 
@@ -137,7 +101,7 @@ const Backend = (props) => {
     };
 
     const removeBackend = (index) => {
-        const updatedData = newJsonData.filter((_, i) => i !== index);
+        const updatedData = JsonData.filter((_, i) => i !== index);
         setNewJsonData(updatedData);
     };
 
@@ -157,19 +121,72 @@ const Backend = (props) => {
         const updatedData = [...JsonData];
         console.log("JsonData:", JsonData);
         console.log("updatedData[index]:", updatedData[index]);
-        
+
         // Check if `server` exists and is an array
         if (Array.isArray(updatedData[index].server)) {
-            updatedData[index].server=[];
-        } 
-        updatedData[index].server.push({ name: '', ip: '', port: '', check: 'disabled' });
+            updatedData[index].server = [];
+        }
+        updatedData[index].server.data.push({ name: '', address: '', port: '', check: 'disabled' });
         setJsonData(updatedData);
     };
+    const handleDelete = (backendIndex, form, removeBackend) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this backend?',
+            // content: 'This action cannot be undone.',
+            onOk() {
+                const deleteBackendData = {
+                    backend: form.getFieldValue(`Backendname_${backendIndex}`)
+                };
+                console.log("deleteBackendData", deleteBackendData);
+
+                axios.post(IP + '/delete_backend', deleteBackendData, {
+                    headers: {
+                        'Authorization': localStoragekey,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                    .then(response => {
+                        if (response.status === 200) {
+                            if (response.data.error === 0) {
+                                message.success('Backend Deleted successfully!');
+                                removeBackend(backendIndex);
+                                window.location.reload(true);
+                            } else if (response.data.error === 1) {
+                                if (response.data.msg === "You are not a sudo user!") {
+                                    alert("You are not a sudo user!");
+                                } else {
+                                    console.error('Unexpected error value:', response.data.msg);
+                                }
+                            }
+                        } else if (response.status === 404) {
+                            console.error('Backend not found');
+                        } else {
+                            console.error('Unexpected response status:', response.status);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+
+            },
+            onCancel() {
+                console.log('Deletion cancelled');
+            },
+        });
+    };
+
 
     const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
         const updatedData = [...JsonData];
-        updatedData[backendIndex].server = updatedData[backendIndex].server.filter((_, i) => i !== serverIndex);
-        setJsonData(updatedData);
+        if (updatedData[backendIndex] && updatedData[backendIndex].server && updatedData[backendIndex].server.data) {
+
+            updatedData[backendIndex].server.data = updatedData[backendIndex].server.data.filter((_, i) => i !== serverIndex);
+            console.log(`Updated servers for backend ${backendIndex}:`, updatedData[backendIndex].server);
+
+            setJsonData(updatedData);
+        } else {
+            console.error(`Invalid structure at backendIndex: ${backendIndex}`);
+        }
     };
 
     const handleServerChange = (backendIndex, serverIndex, key, value) => {
@@ -256,54 +273,96 @@ const Backend = (props) => {
             marginBottom: "5px",
         },
     };
+    console.log("ReceivedJson", JsonData);
+    const onFinish = (values) => {
+        console.log('Received values:', values);
 
-    const handleSave = () => {
-        form.validateFields()
-            .then(values => {
-                setLoadingFlag(true);
-                console.log('Saved values:', values);
 
-                // Make a POST request to save the form data
-                axios.post(IP + "save_backend", values, {
-                    headers: {
-                        'Authorization': protokenbackend,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => {
-                        console.log('Save response:', response);
-                        setLoadingFlag(false);
-                        if (response.status === 200 && response.data.error === 0) {
-                            alert('Saved successfully!');
-                        } else {
-                            alert('Save failed: ' + response.data.msg);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Save error:', error);
-                        setLoadingFlag(false);
-                        alert('An error occurred while saving.');
-                    });
+        var MainSavejsondata = []
+        for (let i = 0; i < JsonData.length; i++) {
+            var backendnew = {}
+            backendnew.name = form.getFieldValue(`Backendname_${i}`);
+            backendnew.balance = {}
+            backendnew.balance.algorithm = form.getFieldValue(`Balance_${i}`);
+            backendnew.mode = form.getFieldValue(`mode_${i}`);
+            console.log("backendnamebackendname", backendnew);
+            console.log("jsondataa===>", JsonData[i]?.server?.data?.length);
+            let length = JsonData[i]?.server?.data?.length;
+            if (length === 0) {
+                length = 1
+            }
+            var servernamesforsave = [];
+            for (let j = 0; j < length; j++) {
+                console.log("INSAVELOOP", form.getFieldValue(`servername_${i}_${j}` ?? ''));
+                var serverForMap = {}
+                serverForMap.name = form.getFieldValue(`servername_${i}_${j}` ?? '');
+                serverForMap.address = form.getFieldValue(`ipFQDN_${i}_${j}` ?? "");
+                serverForMap.port = parseInt(form.getFieldValue(`portNumber_${i}_${j}` ?? ""));
+                serverForMap.check = form.getFieldValue(`check_${i}_${j}` ?? "");
+                console.log("serverForMap", serverForMap);
+                servernamesforsave.push(serverForMap);
+            }
+
+            var combinedData = {
+                backend_data: backendnew,
+                server: servernamesforsave
+            };
+            MainSavejsondata.push(combinedData)
+
+
+        }
+        console.log("servernamesforsave", servernamesforsave);
+        console.log("combinedData", MainSavejsondata)
+
+        axios.post(IP + "save_backend", MainSavejsondata, {
+            headers: {
+                'Authorization': localStoragekey,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('Save response:', response);
+                setLoadingFlag(false);
+                if (response.status === 200) {
+                    message.success('Saved successfully!');
+                } else {
+                    alert('Save failed: ' + response.data.msg);
+                }
             })
-            .catch(info => {
-                console.log('Validate Failed:', info);
+            .catch(error => {
+                console.error('Save error:', error);
+                setLoadingFlag(false);
+                alert('An error occurred while saving.');
             });
+
     };
     useEffect(() => {
+
         for (let i = 0; i < JsonData.length; i++) {
+            console.log("it is working here");
             console.log("the length is", JsonData.length);
-            const backend = JsonData[i].backend;
-            console.log("backend", backend)
-            if (JsonData[i].server?.data) {
-                for (let j = 0; j < JsonData[i].server.data.length; j++) {
-                    const server = JsonData[i].server?.data[j];
+            const backend = JsonData[i]?.backend;
+            console.log("backendbackend", backend)
+            console.log("it is  here");
+            console.log("it is outside here", JsonData[i]);
+            form.setFieldsValue({
+
+                [`Backendname_${i}`]: backend.name,
+                [`Balance_${i}`]: backend.balance.algorithm,
+                [`mode_${i}`]: backend.mode,
+            })
+            if (JsonData[i]?.server?.data) {
+
+                for (let j = 0; j < JsonData[i]?.server?.data.length; j++) {
+                    console.log("it is JsonData here", JsonData);
+                    const server = JsonData[i]?.server?.data[j];
                     console.log("servers", server)
 
                     form.setFieldsValue({
 
-                        [`Backendname_${i}`]: backend.name,
-                        [`Balance_${i}`]: backend.balance.algorithm,
-                        [`mode_${i}`]: backend.mode,
+                        // [`Backendname_${i}`]: backend.name,
+                        // [`Balance_${i}`]: backend.balance.algorithm,
+                        // [`mode_${i}`]: backend.mode,
                         [`servername_${i}_${j}`]: server.name,
                         [`ipFQDN_${i}_${j}`]: server.address,
                         [`portNumber_${i}_${j}`]: server.port,
@@ -321,6 +380,7 @@ const Backend = (props) => {
         <div style={styles.container}>
             <Form layout="vertical" style={styles.form}
                 form={form}
+                onFinish={onFinish}
             >
 
                 <h3 >Backend</h3>
@@ -341,9 +401,9 @@ const Backend = (props) => {
                     <div key={backendIndex}>
                         <Row gutter={16} style={{ marginBottom: '20px' }}>
                             <Col span={8}>
-                                <Form.Item  name={`Backendname_${backendIndex}`} label="Backend Name" required>
+                                <Form.Item name={`Backendname_${backendIndex}`} label="Backend Name" required>
                                     <Input
-                                    
+
                                         placeholder="Enter the backend value"
                                         // value={backend.data.name}
                                         // onChange={(e) => handleNameChange(e.target.value, backendIndex)}
@@ -364,7 +424,7 @@ const Backend = (props) => {
                                 >
                                     <Select
                                         placeholder="Select"
-                                        
+
                                         // value={backend.data.balance.algorithm}
                                         onChange={(value) => handleAlgorithmChange(value, backendIndex)}
                                         required
@@ -388,7 +448,7 @@ const Backend = (props) => {
                                 <Form.Item name={`mode_${backendIndex}`} label="Mode" required>
                                     <Select
                                         placeholder="Select"
-                                        
+
                                         // value={backend.data.mode}
                                         onChange={(value) => handleModeChange(value, backendIndex)}
                                         required
@@ -402,9 +462,12 @@ const Backend = (props) => {
                             <Col span={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Button
                                     type="danger"
-                                    icon={<MinusCircleFilled />}
-                                    onClick={() => removeBackend(backendIndex)}
-                                />
+                                    // icon={<MinusCircleFilled />}
+                                    icon={<DeleteOutlined style={{ color: "white" }} />}
+                                    style={{ backgroundColor: "#d93737", borderColor: "red" }}
+                                    onClick={() => handleDelete(backendIndex, form, removeBackend)}
+                                >
+                                </Button>
                             </Col>
                         </Row>
                         <Card style={styles.card}>
@@ -414,7 +477,9 @@ const Backend = (props) => {
                                 style={{ width: "100%", cursor: "pointer" }} onClick={() => setContactPersonDetailsIsOpen(!contactPersonDeatilsIsOpen)}>
                                 <a style={{ fontSize: "small", fontWeight: "500", color: "black", marginLeft: "0.2cm" }}>
                                     {contactPersonDeatilsIsOpen ? <UpOutlined onClick={() => setContactPersonDetailsIsOpen(false)} /> : <DownOutlined onClick={() => setContactPersonDetailsIsOpen(true)} />} Server Details</a>
+
                             </div>
+
                             {contactPersonDeatilsIsOpen && (
                                 <div>
 
@@ -454,14 +519,14 @@ const Backend = (props) => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {Array.from({ length: JsonData[backendIndex].server.data.length }, (_, index) => (
+                                                {Array.from({ length: JsonData[backendIndex].server.data.length !== 0 ? JsonData[backendIndex].server.data.length : 1 }, (_, index) => (
 
                                                     < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item
                                                                 name={`servername_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
-                                                                rules={[{ required: true, message: 'Please input the Server Name' }]}
+                                                            // rules={[{ required: true, message: 'Please input the Server Name' }]}
                                                             >
                                                                 <Input
                                                                     placeholder="Server Name"
@@ -473,7 +538,7 @@ const Backend = (props) => {
                                                             <Form.Item
                                                                 name={`ipFQDN_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
-                                                                rules={[{ required: true, message: 'Please input the IP/FQDN' }]}
+                                                            // rules={[{ required: true, message: 'Please input the IP/FQDN' }]}
                                                             >
                                                                 <Input
                                                                     placeholder="IP/FQDN"
@@ -485,7 +550,7 @@ const Backend = (props) => {
                                                             <Form.Item
                                                                 name={`portNumber_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
-                                                                rules={[{ required: true, message: 'Please input the Port Number' }]}
+                                                            // rules={[{ required: true, message: 'Please input the Port Number' }]}
                                                             >
                                                                 <Input
                                                                     placeholder="Port Number"
@@ -497,12 +562,12 @@ const Backend = (props) => {
                                                             <Form.Item
                                                                 name={`check_${backendIndex}_${index}`}
                                                                 style={styles.formItemSmall}
-                                                                rules={[{ required: true, message: 'Please select an option' }]}
+                                                            // rules={[{ required: true, message: 'Please select an option' }]}
                                                             >
                                                                 <Select
                                                                     placeholder="Select"
                                                                     style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                                    onChange={(value) => handlePrimaryContactChange(index, value)}
+                                                                // onChange={(value) => handlePrimaryContactChange(index, value)}
                                                                 >
                                                                     <Option value="enabled">Enabled</Option>
                                                                     <Option value="disabled">Disabled</Option>
@@ -512,9 +577,60 @@ const Backend = (props) => {
 
                                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                                             <Form.Item style={styles.formItemSmall}>
-                                                                <PlusCircleOutlined onClick={() => handleClickOnPlusButton(backendIndex)} style={{ fontSize: "20px" }} />
+                                                                <PlusCircleFilled onClick={() => handleClickOnPlusButton(backendIndex)} style={{ fontSize: "20px", color: "#1677ff" }} />
                                                                 &nbsp;&nbsp;&nbsp;
-                                                                <MinusCircleOutlined onClick={() => handleClickOnMinusOfButton(backendIndex,index)} style={{ fontSize: "20px" }} />
+                                                                <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)" }}
+                                                                    onClick={() => {
+                                                                        const backendName = form.getFieldValue(`Backendname_${backendIndex}`);
+                                                                        const serverName = form.getFieldValue(`servername_${backendIndex}_${index}`);
+
+                                                                        if (!backendName || !serverName) {
+                                                                            handleClickOnMinusOfButton(backendIndex, index);
+
+                                                                            console.error('Backend name or server name is missing');
+                                                                            return;
+                                                                        }
+                                                                        const deleteServerData = {
+
+                                                                            backend: backendName,
+                                                                            server: serverName
+                                                                        };
+                                                                        console.log("deleteServerData", deleteServerData);
+
+                                                                        axios.post(IP + '/delete_server', deleteServerData, {
+
+                                                                            headers: {
+                                                                                'Authorization': localStoragekey,
+                                                                                'Content-Type': 'application/json',
+                                                                            },
+                                                                        })
+                                                                            .then(response => {
+                                                                                if (response.status === 200) {
+                                                                                    if (response.data.error === 0) {
+                                                                                        message.success('Server Deleted successfully!');
+                                                                                        // removeBackend(backendIndex);
+                                                                                        handleClickOnMinusOfButton(backendIndex, index);
+                                                                                        window.location.reload(true);
+                                                                                    } else if (response.data.error === 1) {
+                                                                                        if (response.data.msg === "You are not a sudo user!") {
+                                                                                            alert("You are not sudo user!");
+                                                                                        } else {
+                                                                                            console.error('Unexpected error value:', response.data.msg);
+                                                                                        }
+                                                                                    }
+                                                                                } else if (response.status === 404) {
+                                                                                    console.error('Server not found');
+                                                                                } else {
+                                                                                    console.error('Unexpected response status:', response.status);
+                                                                                }
+                                                                            })
+                                                                            .catch(error => {
+                                                                                console.error('Error:', error);
+                                                                            });
+
+                                                                    }}
+
+                                                                />
                                                             </Form.Item>
                                                         </TableCell>
                                                     </TableRow>
@@ -526,15 +642,82 @@ const Backend = (props) => {
 
                             )}
                         </Card>
-
+                        <Divider />
                     </div>
 
                 ))}
-                <Form.Item style={{ alignContent: 'center' }}>
-                    <Button type="default" onClick={handleSave} style={{ alignContent: 'center', marginLeft: '10px' }}>
+                <Form.Item style={{ display: 'flex', justifyContent: 'center', }} >
+                    <Button type="default" onClick={() => {
+                        form
+                            .validateFields()
+                            .then(values => {
+                                onFinish(values);
+                            })
+                            .catch(info => {
+                                console.log('Validate Failed:', info);
+                            });
+                    }}
+                        style={{ alignContent: 'center', marginLeft: '10px' }}>
                         Save
                     </Button>
-                    <Button style={{ alignContent: 'center' }} type="primary" htmlType="submit">
+
+                    &nbsp;&nbsp;&nbsp;
+
+
+
+                    <Button style={{ alignContent: 'center' }} type="primary"
+                        onClick={() => {
+                            
+                            fetch(IP + 'deploy_config', {
+                                headers: {
+                                    'Authorization': localStoragekey,
+
+                                }
+                            })
+                                .then(response => {
+                                    console.log("responseresponse", response);
+                                    if (response.status === 200) {
+                                        message.success('Transaction Successful!');
+                                        fetch(IP + 'regenerate', {
+                                            headers: {
+                                                'Authorization': localStoragekey,
+                                            }
+                                        })
+                                        .then(response => {
+                                            console.log("Regenerate response:", response);
+                                            return response.json();
+                                        })
+                                            .then(data => {
+                                                console.log("responseresponse", data);
+                                                if (data.error === 0) {
+                                                    const proToken = data.pro_token;
+                                                    localStorage.setItem("proToken", proToken)
+                                                    navigate("/home",);
+                                                    console.log('regenerate Successful!');
+                                                } else if (data.error === 1) {
+                                                    // navigate("/")
+                                                    message.error("Unauthorized");
+                                                }else {
+                                                    console.error('Unexpected error value:', data.error);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                            });
+                                    } else if (response.status === 401) {
+                                        message.info("Unauthorized");
+                                    } else if (response.status === 204) {
+                                        console.error('Transaction not found or Dataplane is down.');
+                                    } else {
+                                        console.error('Unexpected response status:', response.status);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error in deploy_config fetch:', error);
+                                });
+
+                        }}
+                    >
                         Final Submit
                     </Button>
                 </Form.Item>

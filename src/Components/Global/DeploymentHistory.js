@@ -1,30 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import IpAddress from '../../IPConfig';
 
 const DeploymentHistory = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const IP = IpAddress();
+  const [jsonData, setJsonData] = useState([]);
+  const [loadingFlag, setLoadingFlag] = useState(false);
   const [error, setError] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const localStorageKey = localStorage.getItem('proToken');
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setLoading(false);
+    setLoadingFlag(true);
+    fetch(IP + "list_config", {
+      headers: {
+        "Authorization": localStorageKey
       }
-    };
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error === 0) {
+          setJsonData(data.files);
+        } else if (data.error === 1) {
+          // navigate('/');
+        }
+        setLoadingFlag(false);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setError(error);
+        setLoadingFlag(false);
+      });
+  }, [IP, localStorageKey]);
 
-    fetchData();
-  }, []);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
-  if (loading) {
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return jsonData.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  if (loadingFlag) {
     return (
       <div style={styles.loading}>
         Loading...
@@ -43,7 +63,70 @@ const DeploymentHistory = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Deployment History</h1>
-      <pre style={styles.data}>{JSON.stringify(data, null, 2)}</pre>
+      <div style={styles.data}>
+        {getPaginatedData().map((file, index) => (
+          <pre key={index}>{JSON.stringify(file, null, 2)}</pre>
+        ))}
+      </div>
+      <Pagination
+        totalItems={jsonData.length}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+      />
+    </div>
+  );
+};
+
+const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange }) => {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const maxVisibleButtons = 10;
+  const [currentRangeStart, setCurrentRangeStart] = useState(1);
+
+  const handleClick = (pageNumber) => {
+    onPageChange(pageNumber);
+  };
+
+  const handleNextRange = () => {
+    setCurrentRangeStart(currentRangeStart + maxVisibleButtons);
+  };
+
+  const handlePrevRange = () => {
+    setCurrentRangeStart(currentRangeStart - maxVisibleButtons);
+  };
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    for (let i = currentRangeStart; i < currentRangeStart + maxVisibleButtons && i <= totalPages; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          onClick={() => handleClick(i)}
+          style={{
+            ...styles.pageButton,
+            ...(currentPage === i ? styles.activePageButton : {})
+          }}
+        >
+          {i}
+        </button>
+      );
+    }
+    return pageNumbers;
+  };
+
+  return (
+    <div style={styles.pagination}>
+      {currentRangeStart > 1 && (
+        <button style={styles.pageButton} onClick={handlePrevRange}>
+          Previous
+        </button>
+      )}
+      {renderPageNumbers()}
+      {currentRangeStart + maxVisibleButtons <= totalPages && (
+        <button style={styles.pageButton} onClick={handleNextRange}>
+          Next
+        </button>
+      )}
     </div>
   );
 };
@@ -70,7 +153,7 @@ const styles = {
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
     fontSize: '14px',
     overflow: 'auto',
-    maxHeight: '400px', // Ensure large data is scrollable
+    maxHeight: '400px',
   },
   loading: {
     textAlign: 'center',
@@ -83,6 +166,23 @@ const styles = {
     padding: '20px',
     fontSize: '18px',
     color: 'red',
+  },
+  pagination: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: '20px',
+    gap: '5px'
+  },
+  pageButton: {
+    padding: '10px 15px',
+    border: '1px solid #ccc',
+    backgroundColor: '#f9f9f9',
+    cursor: 'pointer',
+  },
+  activePageButton: {
+    backgroundColor: '#333',
+    color: '#fff',
   },
 };
 
