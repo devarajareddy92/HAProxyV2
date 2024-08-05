@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Button, Row, Col, message } from "antd";
-import { PlusCircleOutlined, PlusCircleFilled,MinusCircleFilled,MinusCircleOutlined } from "@ant-design/icons";
+import {  PlusCircleFilled, MinusCircleFilled,  } from "@ant-design/icons";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -74,6 +74,7 @@ const AclComponent = () => {
           console.log("setSelectedFrontend", selectedfrontend);
           console.log("frontendSet", frontendSet)
         });
+        console.log("data===>", data.data);
         setAclData(data.data);
         setResultAcl(data.data);
         console.log("setJsonData", data);
@@ -94,7 +95,14 @@ const AclComponent = () => {
       for (let i = 0; i < JsonData.length; i++) {
         if (JsonData[i].frontend === selectedfrontend) {
           console.log("JsonDataJsonData", JsonData[i]?.acl.data);
-          setAclData(JsonData[i]?.acl.data);
+          if (JsonData[i]?.acl.data.length !== 0) {
+            setAclData(JsonData[i]?.acl.data);
+
+          }
+          else {
+            var dummy = [{ acl_name: "", criterion: "", index: 0, value: "" }]
+            setAclData(dummy)
+          }
           break;
         }
       }
@@ -171,17 +179,19 @@ const AclComponent = () => {
     setAclData(updatedData)
   };
   const handleDelete = (index) => {
+    console.log("aclData", aclData);
     var tempData = [...aclData];
-    tempData.splice(index, 1);
-    setAclData(tempData)
+    console.log("tempData", tempData)  
+      tempData.splice(index,1)
+
+      setAclData(tempData);
+   
   };
-  const handleClickOnMinusOfButton = (backendIndex, serverIndex) => {
-    const updatedData = [...resultAcl];
-    updatedData[backendIndex].acl.data = updatedData[
-      backendIndex
-    ].acl.data.filter((_, i) => i !== serverIndex);
-    setResultAcl(updatedData);
-  };
+  // const handleClickOnMinusOfButton = (backendIndex) => {
+  //   const updatedData = [...JsonData];
+  //   updatedData[backendIndex].acl.data = updatedData[backendIndex].acl.data.filter((_, i) => i );
+  //   setResultAcl(updatedData);
+  // };
 
 
   const styles = {
@@ -369,7 +379,7 @@ const AclComponent = () => {
                     <Form.Item
                       name={`aclname_${index}`}
                       style={styles.formItemSmall}
-                      // rules={[{ required: true, message: 'Please select an option' }]}
+                    // rules={[{ required: true, message: 'Please select an option' }]}
                     >
                       <Input
                         placeholder="ACL Name"
@@ -382,7 +392,7 @@ const AclComponent = () => {
                     <Form.Item
                       name={`criterion_${index}`}
                       style={styles.formItemSmall}
-                      // rules={[{ required: true, message: 'Please select an option' }]}
+                    // rules={[{ required: true, message: 'Please select an option' }]}
                     >
                       <Select
                         placeholder="Select"
@@ -423,7 +433,7 @@ const AclComponent = () => {
                     <Form.Item
                       name={`value_${index}`}
                       style={{ marginBottom: "5px" }}
-                      // rules={[{ required: true, message: 'Please select an option' }]}
+                    // rules={[{ required: true, message: 'Please select an option' }]}
                     >
                       <Input
                         placeholder="Value"
@@ -437,56 +447,62 @@ const AclComponent = () => {
                       &nbsp;&nbsp;
                       <PlusCircleFilled onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px", color: "#1677ff" }} />
                       &nbsp;&nbsp;&nbsp;
-                      <MinusCircleFilled 
-                      // onClick={() => handleDelete(index)} style={{ fontSize: "20px",color: "rgb(255 22 22)", cursor: "pointer" }}
-                      onClick={() => {
-                        const backendName = form.getFieldValue(`Backendname_${index}`);
-                        const serverName = form.getFieldValue(`servername_${index}`);
+                      <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)", cursor: "pointer" }}
+                        // onClick={() => handleDelete(index)} 
+                        onClick={() => {
+                          const frontendName = selectedfrontend;
+                          const indexvalues = form.getFieldValue(`index_${index}`);
 
-                        if (!backendName || !serverName) {
-                            handleClickOnMinusOfButton(index);
+                          const ACLNames = form.getFieldValue(`aclname_${index}`)?.trim() !== "" ? form.getFieldValue(`aclname_${index}`) : null;
+                          const Criterion = form.getFieldValue(`criterion_${index}`)?.trim() !== "" ? form.getFieldValue(`criterion_${index}`) : null;
+                          const Value = form.getFieldValue(`value_${index}`)?.trim() !== "" ? form.getFieldValue(`value_${index}`) : null;
+                          const Index = form.getFieldValue(`index_${index}`);
+                          handleDelete(index);
+                          if (Criterion && ACLNames && Value) {
 
-                            console.error('Backend name or server name is missing');
-                            return;
-                        }
-                        const deleteBindData = {
 
-                            frontend: selectedfrontend,
-                            index: form.getFieldValue(`index_${index}`),
-                        };
-                        console.log("deleteServerData", deleteBindData);
-                        axios.post(IP + '/delete_acl_rule', deleteBindData, {
+                            console.error('frontend name or index is missing');
 
-                            headers: {
+
+                            const deleteBindData = {
+
+                              frontend: selectedfrontend,
+                              index: form.getFieldValue(`index_${index}`),
+                            };
+                            console.log("deleteServerData", deleteBindData);
+                            axios.post(IP + '/delete_acl_rule', deleteBindData, {
+
+                              headers: {
                                 'Authorization': localStoragekey,
                                 'Content-Type': 'application/json',
-                            },
-                        })
-                            .then(response => {
-                                if (response.status === 200) {
-                                    if (response.data.error === 0) {
-                                        message.success('Server Deleted successfully!');
-                                        // removeBackend(backendIndex);
-                                        window.location.reload(true);
-                                    } else if (response.data.error === 1) {
-                                        if (response.data.msg === "You are not a sudo user!") {
-                                            alert("You are not sudo user!");
-                                        } else {
-                                            console.error('Unexpected error value:', response.data.msg);
-                                        }
-                                    }
-                                } else if (response.status === 404) {
-                                    console.error('Server not found');
-                                } else {
-                                    console.error('Unexpected response status:', response.status);
-                                }
+                              },
                             })
-                            .catch(error => {
+                              .then(response => {
+                                if (response.status === 200) {
+                                  if (response.data.error === 0) {
+                                    message.success('Server Deleted successfully!');
+                                    // removeBackend(backendIndex);
+                                    window.location.reload(true);
+                                  } else if (response.data.error === 1) {
+                                    if (response.data.msg === "You are not a sudo user!") {
+                                      alert("You are not sudo user!");
+                                    } else {
+                                      console.error('Unexpected error value:', response.data.msg);
+                                    }
+                                  }
+                                } else if (response.status === 404) {
+                                  console.error('Server not found');
+                                } else {
+                                  console.error('Unexpected response status:', response.status);
+                                }
+                              })
+                              .catch(error => {
                                 console.error('Error:', error);
-                            });
-                    }}
+                              });
+                          }
+                        }}
 
-                       />
+                      />
                     </Form.Item>
                   </TableCell>
                 </TableRow>
@@ -525,26 +541,26 @@ const AclComponent = () => {
                     message.success('Transaction Successful!');
                     fetch(IP + 'regenerate', {
                       headers: {
-                          'Authorization': localStoragekey,
+                        'Authorization': localStoragekey,
                       }
-                  })
-                  .then(response => {
-                      console.log("Regenerate response:", response);
-                      return response.json();
-                  })
+                    })
+                      .then(response => {
+                        console.log("Regenerate response:", response);
+                        return response.json();
+                      })
                       .then(data => {
-                          console.log("responseresponse", data);
-                          if (data.error === 0) {
-                              const proToken = data.pro_token;
-                              localStorage.setItem("proToken", proToken)
-                              navigate("/home",);
-                              console.log('regenerate Successful!');
-                          } else if (data.error === 1) {
-                              console.log("Unauthorized");
-                          }
+                        console.log("responseresponse", data);
+                        if (data.error === 0) {
+                          const proToken = data.pro_token;
+                          localStorage.setItem("proToken", proToken)
+                          navigate("/home",);
+                          console.log('regenerate Successful!');
+                        } else if (data.error === 1) {
+                          console.log("Unauthorized");
+                        }
                       })
                       .catch(error => {
-                          console.error('Error:', error);
+                        console.error('Error:', error);
                       });
                   } else if (response.status === 401) {
                     message.error("Unauthorized");
@@ -557,7 +573,7 @@ const AclComponent = () => {
                 .catch(error => {
                   console.error('Error:', error);
                 });
-              
+
             }}
           >
             Final Submit

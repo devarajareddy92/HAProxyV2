@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, Tooltip, message } from 'antd';
-import { PlusCircleOutlined, MinusCircleOutlined ,PlusCircleFilled,MinusCircleFilled} from '@ant-design/icons';
+import { PlusCircleOutlined, MinusCircleOutlined, PlusCircleFilled, MinusCircleFilled } from '@ant-design/icons';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,7 +14,7 @@ import { width } from '@fortawesome/free-solid-svg-icons/fa0';
 
 const { Option } = Select;
 
-const SwitchingRules = (props) => {
+const SwitchingRules = () => {
     // const [dataSource, setDataSource] = useState([
     //     {
     //         key: 0,
@@ -86,7 +86,6 @@ const SwitchingRules = (props) => {
             .then(response => response.json())
             .then(responseData => {
                 try {
-                    // Parse the stringified JSON fields
                     const backendNames = JSON.parse(responseData.backend_names);
                     const data = JSON.parse(responseData.data);
                     console.log("backendNamesbackendNames==>", data);
@@ -135,7 +134,13 @@ const SwitchingRules = (props) => {
         if (Jsondata) {
             for (let i = 0; i < Jsondata?.data?.length; i++) {
                 if (Jsondata?.data[i]?.frontend?.name === selectedfrontend) {
-                    setRulesData(Jsondata?.data[i]?.rule.data);
+                    if (Jsondata?.data[i]?.rule.datalength !== 0) {
+                        setRulesData(Jsondata?.data[i]?.rule.data);
+                    }
+                    else {
+                        var dummy = [{ cond: "", cond_test: "", index: 0, name: "" }]
+                        setRulesData(dummy)
+                    }
                     break;
                 }
             }
@@ -437,9 +442,64 @@ const SwitchingRules = (props) => {
                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                             <Form.Item style={styles.formItemSmall}>
                                                 &nbsp;&nbsp;
-                                                <PlusCircleFilled onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px", cursor: "pointer" ,color: "#1677ff" }} />
+                                                <PlusCircleFilled onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px", cursor: "pointer", color: "#1677ff" }} />
                                                 &nbsp;&nbsp;
-                                                <MinusCircleFilled onClick={() => handleDelete(index)} style={{ fontSize: "20px",color: "rgb(255 22 22)", cursor: "pointer" }} />
+                                                <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)", cursor: "pointer" }}
+                                                    // onClick={() => handleDelete(index)} 
+                                                    onClick={() => {
+                                                        const frontendName = selectedfrontend;
+                                                        const indexvalues = form.getFieldValue(`index_${index}`);
+
+                                                        const condition = form.getFieldValue(`condition_${index}`);
+                                                        const aclName = form.getFieldValue(`aclName_${index}`);
+                                                        const BackendName = form.getFieldValue(`backendname_${index}`);
+                                                        const Index = form.getFieldValue(`index_${index}`);
+
+                                                        handleDelete(index);
+
+                                                        if (condition && aclName && BackendName) {
+
+                                                            console.error('frontend name or index is missing');
+
+                                                            const deleteBindData = {
+
+                                                                frontend: selectedfrontend,
+                                                                index: form.getFieldValue(`index_${index}`),
+                                                            };
+                                                            console.log("deleteServerData", deleteBindData);
+                                                            axios.post(IP + '/delete_switching_rule', deleteBindData, {
+
+                                                                headers: {
+                                                                    'Authorization': localStoragekey,
+                                                                    'Content-Type': 'application/json',
+                                                                },
+                                                            })
+                                                                .then(response => {
+                                                                    if (response.status === 200) {
+                                                                        if (response.data.error === 0) {
+                                                                            message.success('Server Deleted successfully!');
+                                                                            // removeBackend(backendIndex);
+                                                                            window.location.reload(true);
+                                                                        } else if (response.data.error === 1) {
+                                                                            if (response.data.msg === "You are not a sudo user!") {
+                                                                                alert("You are not sudo user!");
+                                                                            } else {
+                                                                                console.error('Unexpected error value:', response.data.msg);
+                                                                            }
+                                                                        }
+                                                                    } else if (response.status === 404) {
+                                                                        console.error('Server not found');
+                                                                    } else {
+                                                                        console.error('Unexpected response status:', response.status);
+                                                                    }
+                                                                })
+                                                                .catch(error => {
+                                                                    console.error('Error:', error);
+                                                                });
+                                                        }
+                                                    }}
+
+                                                />
                                             </Form.Item>
                                         </TableCell>
                                     </TableRow>
@@ -481,10 +541,10 @@ const SwitchingRules = (props) => {
                                                 'Authorization': localStoragekey,
                                             }
                                         })
-                                        .then(response => {
-                                            console.log("Regenerate response:", response);
-                                            return response.json();
-                                        })
+                                            .then(response => {
+                                                console.log("Regenerate response:", response);
+                                                return response.json();
+                                            })
                                             .then(data => {
                                                 console.log("responseresponse", data);
                                                 if (data.error === 0) {
@@ -511,7 +571,7 @@ const SwitchingRules = (props) => {
                                     console.error('Error:', error);
                                 });
 
-                           
+
                         }}
                     >
                         Final Submit
