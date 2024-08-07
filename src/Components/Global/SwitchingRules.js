@@ -35,6 +35,7 @@ const SwitchingRules = () => {
     const [fetchLoading, setFetchLoading] = useState(true);
     const [frontendNames, setFrontendNames] = useState([]);
     const [selectedfrontend, setSelectedFrontend] = useState(null);
+    const [ALLaclNames, setALLAclNames] = useState(null);
     const [form] = Form.useForm();
     const location = useLocation();
     const navigate = useNavigate();
@@ -51,7 +52,12 @@ const SwitchingRules = () => {
     }, []);
 
     const localStoragekey = localStorage.getItem('proToken');
-
+    useEffect(() => {
+        if (!localStoragekey) {
+            console.log('Token:', localStoragekey);
+            navigate('/')
+        }
+    }, [])
 
 
     const handleClickOnPlusButton = (frontendIndex) => {
@@ -96,8 +102,9 @@ const SwitchingRules = () => {
                             data: data
                         });
                         var dummyfrontends = [];
+                        var dummyaclnames = [];
                         for (let i = 0; i < data.length; i++) {
-                            console.log("datalength", data[i]?.frontend.name)
+                            console.log("datalength", data[i].acl.data[i])
                             var AllFrontendNames = data[i]?.frontend?.name
                             if (AllFrontendNames) {
                                 if (i === 0) {
@@ -109,8 +116,15 @@ const SwitchingRules = () => {
                                 dummyfrontends.push(temp)
 
                             }
+                            var ALLacl = {}
+                            ALLacl.label = data[i]?.acl?.data[i]?.acl_name;
+                            ALLacl.value = data[i]?.acl?.data[i]?.acl_name;
+                            dummyaclnames.push(ALLacl)
+                            console.log("dummyaclnames", dummyaclnames);
+
                         }
                         setFrontendNames(dummyfrontends)
+                        setALLAclNames(dummyaclnames)
 
                         console.log("The data isbackendNamesbackendNames", { backendNames, data });
                     } else if (responseData.error === 1) {
@@ -179,8 +193,8 @@ const SwitchingRules = () => {
     const onFinish = (values) => {
         console.log('Received values:', values);
         var MainSavejsondata = []
+        console.log("rulesData?.length", rulesData?.length)
         for (let i = 0; i < rulesData?.length; i++) {
-
             var rulesvalues = {
                 frontend: selectedfrontend,
                 data: {
@@ -192,9 +206,10 @@ const SwitchingRules = () => {
             };
             console.log("backendnamebackendname", rulesvalues);
             MainSavejsondata.push(rulesvalues);
-            console.log('MainSavejsondata:', MainSavejsondata);
-
+            // console.log('MainSavejsondata:', MainSavejsondata);
         }
+        console.log('MainSavejsondata:', MainSavejsondata);
+
         axios.post(IP + "save_switching_rule", MainSavejsondata, {
             headers: {
                 'Authorization': localStoragekey,
@@ -205,15 +220,15 @@ const SwitchingRules = () => {
                 console.log('Save response:', response);
                 setLoadingFlag(false);
                 if (response.status === 200) {
-                    alert('Saved successfully!');
+                    message.success('Saved successfully!');
                 } else {
-                    alert('Save failed: ' + response.data.msg);
+                    message.error('Save failed: ' + response.data.msg);
                 }
             })
             .catch(error => {
                 console.error('Save error:', error);
                 setLoadingFlag(false);
-                alert('An error occurred while saving.');
+                message.error('An error occurred while saving.');
             });
 
     }
@@ -229,7 +244,7 @@ const SwitchingRules = () => {
             margin: "20px",
         },
         heading: {
-            fontSize: "24px",
+            fontSize: "18px",
             fontWeight: "bold",
             marginBottom: "20px",
         },
@@ -299,16 +314,35 @@ const SwitchingRules = () => {
         formItemSmall: {
             marginBottom: "5px",
         },
+
     };
+    const mobileStyles = {
+        formItem: {
+            width: "100%",
+            marginBottom: "10px",
+        },
+    };
+
+    console.log("rulesData?.length", rulesData?.length)
 
     console.log("Jsondata?.backend_names", Jsondata?.backendNames);
 
     return (
         <div style={styles.container}>
-            <div style={styles.heading}>Switching Rules</div>
-            <Form layout="vertical" style={styles.formItem}
-                form={form}>
-                <Row gutter={24}>
+            <Form layout="vertical"
+                form={form}
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                    maxWidth: "1300px",
+                    backgroundColor: "#fff",
+                    padding: "40px",
+                }}
+            >
+                <div style={styles.heading}>Switching Rules</div>
+
+                <Row gutter={16} style={{ marginBottom: "20px" }}>
                     <Col span={8}>
                         <Form.Item label="Frontend Name" required>
                             <Select
@@ -322,8 +356,12 @@ const SwitchingRules = () => {
                         </Form.Item>
                     </Col>
                 </Row>
-                <div>
-                    <TableContainer style={{ width: "200%" }}>
+                <div style={{
+                    width: screenWidth < 700 ? "10cm" : screenWidth > 700
+                    //    style={{ width: "200%" }}
+                }}
+                >
+                    <TableContainer >
                         <Table sx={styles.table} aria-label="a dense table">
                             <TableHead sx={styles.tableHeader}>
                                 <TableRow sx={styles.tableHeader}>
@@ -371,12 +409,12 @@ const SwitchingRules = () => {
                             <TableBody>
 
                                 {/* {dataSource.map((record, index) => ( */}
-                                {Array.from({ length: rulesData?.length !== 0 ? rulesData?.length : 1 }, (_, index) => (
+                                {Array.from({ length: rulesData?.length }, (_, index) => (
                                     < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                             <Form.Item
                                                 name={`backendname_${index}`}
-                                                style={styles.formItemSmall}
+                                                style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
                                             >
                                                 <Select
                                                     placeholder="Select option"
@@ -395,7 +433,7 @@ const SwitchingRules = () => {
                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                             <Form.Item
                                                 name={`condition_${index}`}
-                                                style={styles.formItemSmall}
+                                                style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
                                             >
                                                 <Select
                                                     placeholder="Select"
@@ -410,17 +448,17 @@ const SwitchingRules = () => {
                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                             <Form.Item
                                                 name={`aclName_${index}`}
-                                                style={styles.formItemSmall}
-                                                rules={[{ required: true, message: 'Please select an option' }]}
-                                            > <Select
-                                                placeholder="Select ACLNames"
-                                                style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                options={aclData}
-                                                value={selectedrule}
-                                                onChange={(value) => setSelectedRule(value)}
-                                                defaultValue={selectedrule}
-                                            // onChange={(value) => handlePrimaryContactChange(index, value)}
+                                                style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
                                             >
+                                                <Select
+                                                    placeholder="Select ACLNames"
+                                                    style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                    options={ALLaclNames}
+                                                    // value={selectedrule}
+                                                    onChange={(value) => setSelectedRule(value)}
+                                                // defaultValue={selectedrule}
+                                                // onChange={(value) => handlePrimaryContactChange(index, value)}
+                                                >
                                                     {/* <Option >Select</Option> */}
                                                 </Select>
                                             </Form.Item>
@@ -428,7 +466,7 @@ const SwitchingRules = () => {
                                         <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
                                             <Form.Item
                                                 name={`index_${index}`}
-                                                style={styles.formItemSmall}
+                                                style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
                                             >
                                                 <Input
                                                     type="number"
@@ -482,7 +520,7 @@ const SwitchingRules = () => {
                                                                             window.location.reload(true);
                                                                         } else if (response.data.error === 1) {
                                                                             if (response.data.msg === "You are not a sudo user!") {
-                                                                                alert("You are not sudo user!");
+                                                                                message.info("You are not sudo user!");
                                                                             } else {
                                                                                 console.error('Unexpected error value:', response.data.msg);
                                                                             }
@@ -511,7 +549,7 @@ const SwitchingRules = () => {
                 &nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;
                 <Form.Item style={styles.buttonContainer} >
-                    <Button type="default" onClick={() => {
+                    <Button type="primary" onClick={() => {
                         form
                             .validateFields()
                             .then(values => {

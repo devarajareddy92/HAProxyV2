@@ -68,11 +68,18 @@ const GlobalContainer = () => {
 
     const handleSubmit = (values) => {
         console.log('Form values: ', values);
-        alert('Form submitted');
+        message.success('Form submitted');
     };
 
 
-    const localStoragekey = localStorage.getItem('proToken')
+    const localStoragekey = localStorage.getItem('proToken');
+    console.log("localStoragekeylocalStoragekey",localStoragekey);
+
+    useEffect(() => {
+		if (!localStoragekey) {
+			navigate('/')
+		}
+	}, [])
     // console.log("the token is ", localStoragekey)
     useEffect(() => {
         // Update the screen width whenever the window is resized
@@ -203,15 +210,15 @@ const GlobalContainer = () => {
                 console.log('Save response:', response);
                 setLoadingFlag(false);
                 if (response.status === 200 && response.data.error === 0) {
-                    alert('Saved successfully!');
+                    message.success('Saved successfully!');
                 } else {
-                    alert('Save failed: ' + response.data.msg);
+                    message.error('Save failed: ' + response.data.msg);
                 }
             })
             .catch(error => {
                 console.error('Save error:', error);
                 setLoadingFlag(false);
-                alert('An error occurred while saving.');
+                message.error('An error occurred while saving.');
             });
 
     };
@@ -405,8 +412,8 @@ const GlobalContainer = () => {
                         </Row>
 
 
-                        <Form.Item style={{ display: 'flex', justifyContent: 'center', }} >
-                            <Button type="default" onClick={() => {
+                        <Form.Item style={{ display: 'flex', justifyContent: 'center',marginLeft: '10px' }} >
+                            <Button type="primary" onClick={() => {
                                 form
                                     .validateFields()
                                     .then(values => {
@@ -416,9 +423,10 @@ const GlobalContainer = () => {
                                         console.log('Validate Failed:', info);
                                     });
                             }}
-                                style={{ alignContent: 'center', marginLeft: '10px' }}>
+                                style={{ alignContent: 'center' }}>
                                 Save
                             </Button>
+                            &nbsp;&nbsp;&nbsp;
 
                             <Button type="primary"
                                 onClick={() => {

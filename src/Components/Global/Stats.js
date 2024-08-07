@@ -10,13 +10,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const Stats = (props) => {
     const IP = IpAddress();
+    const IPWithoutPort = IP.replace(/^https?:\/\//, '').split(':')[0];
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [JsonData, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [form] = Form.useForm();
-    const [statsEnabled, setStatsEnabled] = useState(false);
+    const [enabled, setEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [uri, setUri] = useState('');
+    const [bindport, setBindport] = useState('');
+    const [urll, setUrll] = useState('');
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -30,8 +34,31 @@ const Stats = (props) => {
             window.removeEventListener("resize", handleResize);
         };
     }, []);
+    //     const stats = data.data[1];
+    //     if (stats.frontend.stats_options) {
+    //         form.setFieldsValue({
+    //             bindaddress: stats.bind[0].address,
+    //             bindport: stats.bind[0].port,
+    //             refreshrate: parseInt(stats.frontend.stats_options.stats_refresh_delay) / 1000,
+    //             urll: stats.frontend.stats_options.stats_uri_prefix.substring(1),
+    //             username: stats.frontend.stats_options.stats_auths[0].user,
+    //             password: stats.frontend.stats_options.stats_auths[0].passwd,
+    //         });
 
+    //         setStatsEnabled(true);
+    //     } else {
+    //         setStatsEnabled(false);
+    //     }
+    // } else {
+    //     setStatsEnabled(false);
+    // }
     const localStoragekey = localStorage.getItem('proToken')
+    useEffect(() => {
+        if (!localStoragekey) {
+            console.log('Token:', localStoragekey);
+            navigate('/')
+        }
+    }, [])
     // console.log("the token is ", localStoragekey)
     useEffect(() => {
         setLoadingFlag(true)
@@ -43,63 +70,104 @@ const Stats = (props) => {
             .then(response => response.json())
             .then(data => {
                 console.log("Fetched data:", data);
-                if (data.error === 0 && data.data.length > 1) {
-                    const stats = data.data[1];
-                    if (stats.frontend.stats_options) {
-                        form.setFieldsValue({
-                            bindaddress: stats.bind[0].address,
-                            bindport: stats.bind[0].port,
-                            refreshrate: parseInt(stats.frontend.stats_options.stats_refresh_delay) / 1000,
-                            urll: stats.frontend.stats_options.stats_uri_prefix.substring(1),
-                            username: stats.frontend.stats_options.stats_auths[0].user,
-                            password: stats.frontend.stats_options.stats_auths[0].passwd,
-                        });
-
-                        setStatsEnabled(true);
-                    } else {
-                        setStatsEnabled(false);
-                    }
-                } else {
-                    setStatsEnabled(false);
+                if (data.error === 0) {
+                    setJsonData(data)
+                    console.log("The data is", data);
+                    setLoadingFlag(false)
+                } else if (data.error === 1) {
+                    navigate('/');
                 }
             })
             .catch(error => {
                 console.error('Error fetching stats:', error);
                 message.error('Failed to fetch stats.');
             });
-    }, [form]);
+    }, []);
 
-    const onFinish = async (values) => {
+    console.log("INLOOPstatsjsondata", JsonData)
+
+    useEffect(() => {
+        console.log("setFieldsValue", JsonData)
+
+        if (JsonData && JsonData.data && JsonData.data[0]) {
+            const bindAddress = JsonData.data[0].bind ? JsonData.data[0].bind[0]?.address : '';
+            const bindPort = JsonData.data[0].bind ? JsonData.data[0].bind[0]?.port : '';
+            const refreshRate = JsonData.data[0].frontend?.stats_options ?
+                parseInt(JsonData.data[0].frontend.stats_options.stats_refresh_delay) / 1000 : '';
+            const url = JsonData.data[0].frontend?.stats_options?.stats_uri_prefix?.substring(1) || '';
+            const username = JsonData.data[0].frontend?.stats_options?.stats_auths ?
+                JsonData.data[0].frontend.stats_options.stats_auths[0]?.user : '';
+            const password = JsonData.data[0].frontend?.stats_options?.stats_auths ?
+                JsonData.data[0].frontend.stats_options.stats_auths[0]?.passwd : '';
+            setBindport(bindPort);
+            setUrll(url)
+            form.setFieldsValue({
+                bindaddress: bindAddress,
+                bindport: bindPort,
+                refreshrate: refreshRate,
+                urll: url,
+                username: username,
+                password: password,
+            });
+        }
+
+    }, [JsonData]);
+
+    useEffect(() => {
+        const anchorTag = document.getElementById("yourLinkId");
+        if (anchorTag) {
+            const constructedURL = `http://${IPWithoutPort}:${bindport}/${urll}`;
+            console.log("Constructed URL:", constructedURL);
+            anchorTag.href = constructedURL;
+            anchorTag.textContent = "Go to Dashboard";
+            anchorTag.target = "_blank";
+        }
+    }, [IPWithoutPort, bindport, urll]);
+
+    const onFinish = (values) => {
         setLoading(true);
-        const data = statsEnabled ? {
+        const data = {
+            // stats_action:true,
             bindaddress: values.bindaddress,
             bindport: values.bindport,
-            refreshrate: parseInt(values.refreshrate) * 1000,
-            urll: `/${values.urll}`,
+            refreshrate: values.refreshrate,
+            urll: values.urll,
             username: values.username,
             password: values.password,
-        } : { stats_action: false };
-
-        try {
-            const response = await axios.post('/save_stats', data, {
-                headers: {
-                    'Authorization': localStoragekey,
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (response.data.error === 0) {
-                message.success('Data saved successfully. Final submit required.');
-            } else {
-                message.error(response.data.message);
-            }
-        } catch (error) {
-            console.error('Error saving stats:', error);
-            message.error('Failed to save stats.');
-        } finally {
-            setLoading(false);
+        };
+        if (enabled) {
+            data.stats_action = true;
+        } else {
+            data.stats_action = false;
         }
+        console.log('datadatadata:', data);
+        setUri(values.bindaddress);
+        setBindport(values.bindport);
+        setUrll(values.urll);
+        axios.post(IP + '/save_stats', data, {
+            headers: {
+                'Authorization': localStoragekey,
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => {
+                console.log('Save response:', response);
+                setLoading(false); // Adjusted to match original variable name
+                if (response.status === 200 && response.data.error === 0) {
+                    message.success('Saved successfully!');
+                } else {
+                    message.error('Save failed: ' + response.data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                setLoading(false); // Adjusted to match original variable name
+                message.error('An error occurred while saving.');
+            });
     };
-
+    const handleSelectChange = (e) => {
+        setEnabled(e.target.value === 'Enable');
+    };
 
     const styles = {
         container: {
@@ -193,162 +261,181 @@ const Stats = (props) => {
                         <br />
                         <label style={styles.label}>
                             Stats Action
-                            <select name="YESorNO" id="pref" style={styles.select}>
+                            <select name="YESorNO" id="pref" style={styles.select}
+                                onChange={handleSelectChange}>
                                 <option value="Enable">Enable</option>
                                 <option value="Disable">Disable</option>
                             </select>
 
-                            <a href="" style={styles.link}>
+                            <a id="yourLinkId" href="" style={styles.link}>
                                 Go to Dashboard
                             </a>
                         </label>
+                        {enabled && (
 
-                        <Form form={form} layout="horizontal" style={styles.form} onFinish={onFinish}>
-                            <div style={styles.row}>
+                            <Form form={form} layout="horizontal" style={styles.form} onFinish={onFinish}>
+                                <div style={styles.row}>
 
-                                <Form.Item
-                                    name="bindaddress"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            Bind Address <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input
-                                        style={styles.input}
-                                        placeholder="Enter Bind Address"
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    name="bindaddress"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            Bind Port <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input placeholder="Enter Bind Port" style={styles.input} />
+                                    <Form.Item
+                                        name="bindaddress"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                Bind Address <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input
+                                            style={styles.input}
+                                            placeholder="Enter Bind Address"
+                                        />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="bindport"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                Bind Port <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input placeholder="Enter Bind Port" style={styles.input} />
 
-                                </Form.Item>
-                            </div>
-                            <div style={styles.row}>
-                                <Form.Item
-                                    name="refreshrate"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            Refresh Rate <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input
-                                        placeholder="Enter Refresh Rate"
-                                        style={styles.input}
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    name="urll"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            URL <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input placeholder="Enter URL" style={styles.input} />
-                                </Form.Item>
-                            </div>
-                            <div style={styles.row}>
-                                <Form.Item
-                                    name="username"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            Username <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input placeholder="Enter Username" style={styles.input} />
-                                </Form.Item>
+                                    </Form.Item>
+                                </div>
+                                <div style={styles.row}>
+                                    <Form.Item
+                                        name="refreshrate"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                Refresh Rate <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input
+                                            placeholder="Enter Refresh Rate"
+                                            style={styles.input}
+                                        />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="urll"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                URL <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input placeholder="Enter URL" style={styles.input} />
+                                    </Form.Item>
+                                </div>
+                                <div style={styles.row}>
+                                    <Form.Item
+                                        name="username"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                Username <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input placeholder="Enter Username" style={styles.input} />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    name="password"
-                                    label={
-                                        <span style={styles.labelSpan}>
-                                            Password <span style={styles.required}>*</span>
-                                        </span>
-                                    }
-                                    style={styles.formItem}
-                                >
-                                    <Input
-                                        placeholder="Enter Password"
-                                        type="password"
-                                        style={styles.input}
-                                    />
-                                </Form.Item>
-                            </div>
+                                    <Form.Item
+                                        name="password"
+                                        label={
+                                            <span style={styles.labelSpan}>
+                                                Password <span style={styles.required}>*</span>
+                                            </span>
+                                        }
+                                        style={styles.formItem}
+                                    >
+                                        <Input
+                                            placeholder="Enter Password"
+                                            type="password"
+                                            style={styles.input}
+                                        />
+                                    </Form.Item>
+                                </div>
+                            </Form>
+                        )}
+                        <div>
                             <Form.Item style={styles.buttonItem}>
-                                <Button type="primary" htmlType="submit" style={styles.button}>
+                                <Button type="primary" onClick={() => {
+                                    form
+                                        .validateFields()
+                                        .then(values => {
+                                            onFinish(values);
+                                        })
+                                        .catch(info => {
+                                            console.log('Validate Failed:', info);
+                                        });
+                                }}
+                                    style={{ alignContent: 'center', marginLeft: '10px' }}>
                                     Save
                                 </Button>
-                            </Form.Item>
-                        </Form>
-                        <Divider />
-                        <div style={{ display: 'flex', justifyContent: 'center', }}>
-                            <Button type="primary" style={{ marginTop: "20px" }}
-                                onClick={() => {
-                                    fetch(IP + 'deploy_config', {
-                                        headers: {
-                                            'Authorization': localStoragekey,
-                                        }
-                                    })
-                                        .then(response => {
-                                            console.log("responseresponse", response);
-                                            if (response.status === 200) {
-                                                message.success('Transaction Successful!');
-                                                fetch(IP + 'regenerate', {
-                                                    headers: {
-                                                        'Authorization': localStoragekey,
-                                                    }
-                                                })
-                                                .then(response => {
-                                                    console.log("Regenerate response:", response);
-                                                    return response.json();
-                                                })
-                                                    .then(data => {
-                                                        console.log("responseresponse", data);
-                                                        if (data.error === 0) {
-                                                            const proToken = data.pro_token;
-                                                            localStorage.setItem("proToken", proToken)
-                                                            navigate("/home",);
-                                                            console.log('regenerate Successful!');
-                                                        } else if (data.error === 1) {
-                                                            console.log("Unauthorized");
-                                                        }
-                                                    })
-                                                    .catch(error => {
-                                                        console.error('Error:', error);
-                                                    });
-                                            } else if (response.status === 401) {
-                                                message.info("Unauthorized");
-                                            } else if (response.status === 204) {
-                                                console.error('Transaction not found or Dataplane is down.');
-                                            } else {
-                                                console.error('Unexpected response status:', response.status);
+                                &nbsp;&nbsp;&nbsp;
+                                <Button type="primary" style={{ marginTop: "20px" }}
+                                    onClick={() => {
+                                        fetch(IP + 'deploy_config', {
+                                            headers: {
+                                                'Authorization': localStoragekey,
                                             }
                                         })
-                                        .catch(error => {
-                                            console.error('Error:', error);
-                                        });
+                                            .then(response => {
+                                                console.log("responseresponse", response);
+                                                if (response.status === 200) {
+                                                    message.success('Transaction Successful!');
+                                                    fetch(IP + 'regenerate', {
+                                                        headers: {
+                                                            'Authorization': localStoragekey,
+                                                        }
+                                                    })
+                                                        .then(response => {
+                                                            console.log("Regenerate response:", response);
+                                                            return response.json();
+                                                        })
+                                                        .then(data => {
+                                                            console.log("responseresponse", data);
+                                                            if (data.error === 0) {
+                                                                const proToken = data.pro_token;
+                                                                localStorage.setItem("proToken", proToken)
+                                                                navigate("/home",);
+                                                                console.log('regenerate Successful!');
+                                                            } else if (data.error === 1) {
+                                                                console.log("Unauthorized");
+                                                            }
+                                                        })
+                                                        .catch(error => {
+                                                            console.error('Error:', error);
+                                                        });
+                                                } else if (response.status === 401) {
+                                                    message.info("Unauthorized");
+                                                } else if (response.status === 204) {
+                                                    console.error('Transaction not found or Dataplane is down.');
+                                                } else {
+                                                    console.error('Unexpected response status:', response.status);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                            });
 
-                                  
-                                }}
-                            >
-                                Final Submit
-                            </Button>
+
+                                    }}
+                                >
+                                    Final Submit
+                                </Button>
+                            </Form.Item>
                         </div>
+
+
+                        <Divider />
+                        {/* <div style={{ display: 'flex', justifyContent: 'center', }}>
+                          
+                        </div> */}
                     </div>
                 </div>
             </div>

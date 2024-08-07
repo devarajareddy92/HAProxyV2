@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import IpAddress from '../../IPConfig';
+import { useNavigate } from 'react-router-dom';
 
 const JournalLogs = () => {
   const IP = IpAddress();
   const [jsonData, setJsonData] = useState({});
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate;
   const localStorageKey = localStorage.getItem('proToken');
+  useEffect(() => {
+		if (!localStorageKey) {
+            console.log('Token:', localStorageKey);
+			navigate('/')
+		}
+	}, [])
 
   useEffect(() => {
     setLoadingFlag(true);
@@ -57,9 +64,9 @@ const JournalLogs = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Journal Logs</h1>
-     
-        <p>{jsonData.logs}</p>
-     
+
+      <p>{jsonData.logs}</p>
+
     </div>
   );
 };

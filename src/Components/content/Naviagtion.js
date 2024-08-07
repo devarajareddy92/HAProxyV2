@@ -121,34 +121,40 @@ const Naviagtion = () => {
       <Menu.Item key="3">
         <a href="/deploymenthistory">Deployment History</a>
       </Menu.Item>
-      <SubMenu key="sub2" title="HA Proxy Actions">
-        <Menu.Item
-          key="4-1"
-          onClick={() => handleMenuClick("Restart HA Proxy")}
-        >
-          <a href="#action1">Restart HA Proxy</a>
-        </Menu.Item>
-        <Menu.Item key="4-2" onClick={() => handleMenuClick("Start HA Proxy")}>
-          <a href="#action2">Start HA Proxy</a>
-        </Menu.Item>
-        <Menu.Item key="4-3" onClick={() => handleMenuClick("Stop HA Proxy")}>
-          <a href="#action3">Stop HA Proxy</a>
-        </Menu.Item>
-      </SubMenu>
+      <Menu mode="inline" style={{ width: 256 }}>
+
+        <SubMenu key="sub2" title="HA Proxy Actions">
+          <Menu.Item
+            key="4-1"
+            onClick={() => handleMenuClick("Restart HA Proxy")}
+          >
+            <a href="#action1">Restart HA Proxy</a>
+          </Menu.Item>
+          <Menu.Item key="4-2" onClick={() => handleMenuClick("Start HA Proxy")}>
+            <a href="#action2">Start HA Proxy</a>
+          </Menu.Item>
+          <Menu.Item key="4-3" onClick={() => handleMenuClick("Stop HA Proxy")}>
+            <a href="#action3">Stop HA Proxy</a>
+          </Menu.Item>
+        </SubMenu>
+      </Menu>
       <Menu.Item key="5">
         <a href="journallogs">HA Proxy Journal Logs</a>
       </Menu.Item>
-      <SubMenu key="sub1" title="Help">
-        <Menu.Item key="6">
-          <a href="#option6">About</a>
-        </Menu.Item>
-        <Menu.Item key="7">
-          <a href="#option7">SOP</a>
-        </Menu.Item>
-        <Menu.Item key="8">
-          <a href="#option8">FAQ</a>
-        </Menu.Item>
-      </SubMenu>
+      <Menu mode="inline" style={{ width: 256 }}>
+
+        <SubMenu key="sub1" title="Help">
+          <Menu.Item key="6">
+            <a href="#option6">About</a>
+          </Menu.Item>
+          <Menu.Item key="7">
+            <a href="#option7">SOP</a>
+          </Menu.Item>
+          <Menu.Item key="8">
+            <a href="#option8">FAQ</a>
+          </Menu.Item>
+        </SubMenu>
+      </Menu>
     </Menu>
   );
 
@@ -230,10 +236,10 @@ const Naviagtion = () => {
 
       <div className="content">
         <nav className="navbar">
-          <Button type="primary"style={{  background:" #195576"}} onClick={toggleSidebar}>
+          <Button type="primary" style={{ background: " #195576" }} onClick={toggleSidebar}>
             <FontAwesomeIcon icon={faAlignLeft} />
           </Button>
-          <div className="navbar-logo" style={{ paddingLeft: '20px' }}>HAPROXY CONFIG MANAGER</div>
+          <div className="navbar-logo" style={{}}>HAPROXY CONFIG MANAGER</div>
           <div className={`navbar-links ${isNavbarOpen ? 'active' : ''}`}>
             <a href="/home">Home</a>
             <Dropdown overlay={optionsMenu}>
@@ -245,14 +251,21 @@ const Naviagtion = () => {
               </a>
             </Dropdown>
 
-            <a style={{ paddingRight: "40px" }} href="/">Logout</a>
+            <a style={{ paddingRight: "40px" }}
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                localStorage.removeItem('proToken');
+                window.location.href = '/';
+              }}
+            >Logout</a>
           </div>
           <div className="navbar-toggle" onClick={toggleNavbar}>
-            <FontAwesomeIcon  icon={isNavbarOpen ? faTimes : faBars} className="navbar-toggle-icon" />
+            <FontAwesomeIcon icon={faBars} style={{ marginLeft: '-1cm' }} />
           </div>
         </nav>
 
-        <div className={`content ${isSidebarOpen ? 'content-shift' : ''}`} style={{height:"15cm",overflow:"auto"}}>
+        <div className={`content ${isSidebarOpen ? 'content-shift' : ''}`} style={{ height: "15cm", overflow: "auto" }}>
 
           {window.location.href.includes("global") ?
             <GlobalContainer />

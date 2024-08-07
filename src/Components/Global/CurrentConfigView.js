@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
 import IpAddress from "../../IPConfig";
+import {  useNavigate } from 'react-router-dom';
 
 const CurrentConfigView = () => {
   const IP = IpAddress();
   const [jsonData, setJsonData] = useState([]);
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
 
   const localStorageKey = localStorage.getItem("proToken");
 
+  useEffect(() => {
+		if (!localStorageKey) {
+            console.log('Token:', localStorageKey);
+			navigate('/')
+		}
+	}, [])
   useEffect(() => {
     setLoadingFlag(true);
     fetch(IP + "current_haproxy", {

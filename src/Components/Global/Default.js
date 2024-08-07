@@ -81,7 +81,15 @@ const Default = () => {
         // marginTop: '20px',
     };
 
-    const localStoragekey = localStorage.getItem('proToken')
+    const localStoragekey = localStorage.getItem('proToken');
+    console.log("localStoragekeylocalStoragekey",localStoragekey);
+
+    useEffect(() => {
+		if (!localStoragekey) {
+            console.log('Token:', localStoragekey);
+			navigate('/')
+		}
+	}, [])
     // console.log("the token is ", localStoragekey)
 
     useEffect(() => {
@@ -136,15 +144,15 @@ const Default = () => {
                         console.log('Save response:', response);
                         setLoadingFlag(false);
                         if (response.status === 200 && response.data.error === 0) {
-                            alert('Saved successfully!');
+                            message.success('Saved successfully!');
                         } else {
-                            alert('Save failed: ' + response.data.msg);
+                            message.error('Save failed: ' + response.data.msg);
                         }
                     })
                     .catch(error => {
                         console.error('Save error:', error);
                         setLoadingFlag(false);
-                        alert('An error occurred while saving.');
+                        message.error('An error occurred while saving.');
                     });
             })
             .catch(info => {
@@ -211,7 +219,7 @@ const Default = () => {
                                     Save
                                 </Button>
                                 &nbsp;&nbsp;&nbsp;
-                                <Button type="primary" href="/deploy_config" style={{ marginTop: '20px' }} 
+                                <Button type="primary"  style={{ marginTop: '20px' }} 
                                     onClick={() => {
                                         fetch(IP + 'deploy_config', {
                                             headers: {

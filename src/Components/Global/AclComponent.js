@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Button, Row, Col, message } from "antd";
-import {  PlusCircleFilled, MinusCircleFilled,  } from "@ant-design/icons";
+import { PlusCircleFilled, MinusCircleFilled, } from "@ant-design/icons";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -21,7 +21,7 @@ const AclComponent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const IP = IpAddress();
-  const localStoragekey = localStorage.getItem("proToken");
+
   const [frontendNames, setFrontendNames] = useState([]);
 
   const [frontendOptions, setFrontendOptions] = useState([]);
@@ -34,6 +34,14 @@ const AclComponent = () => {
   const [dialogState, setDialogState] = useState(false);
   const { Option } = Select;
 
+  const localStoragekey = localStorage.getItem("proToken");
+  console.log("localStoragekeylocalStoragekey", localStoragekey);
+  useEffect(() => {
+    if (!localStoragekey) {
+      console.log('Token:', localStoragekey);
+      navigate('/')
+    }
+  }, [])
   useEffect(() => {
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
@@ -43,6 +51,7 @@ const AclComponent = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
 
   useEffect(() => {
     setLoadingFlag(true);
@@ -160,15 +169,15 @@ const AclComponent = () => {
         console.log('Save response:', response);
         setLoadingFlag(false);
         if (response.status === 200) {
-          alert('Saved successfully!');
+          message.success('Saved successfully!');
         } else {
-          alert('Save failed: ' + response.data.msg);
+          message.error('Save failed: ' + response.data.msg);
         }
       })
       .catch(error => {
         console.error('Save error:', error);
         setLoadingFlag(false);
-        alert('An error occurred while saving.');
+        message.error('An error occurred while saving.');
       });
 
   };
@@ -181,11 +190,11 @@ const AclComponent = () => {
   const handleDelete = (index) => {
     console.log("aclData", aclData);
     var tempData = [...aclData];
-    console.log("tempData", tempData)  
-      tempData.splice(index,1)
+    console.log("tempData", tempData)
+    tempData.splice(index, 1)
 
-      setAclData(tempData);
-   
+    setAclData(tempData);
+
   };
   // const handleClickOnMinusOfButton = (backendIndex) => {
   //   const updatedData = [...JsonData];
@@ -274,7 +283,14 @@ const AclComponent = () => {
       height: "0.5cm",
     },
     formItemSmall: {
-      marginBottom: "5px",
+
+      // marginBottom: "5px",
+    },
+  };
+  const mobileStyles = {
+    formItem: {
+      width: "100%",
+      marginBottom: "10px",
     },
   };
 
@@ -324,196 +340,201 @@ const AclComponent = () => {
             </Form.Item>
           </Col>
         </Row>
-        <TableContainer >
-          <Table sx={styles.table} aria-label="a dense table">
-            <TableHead sx={styles.tableHeader}>
-              <TableRow sx={styles.tableHeader}>
-                <TableCell sx={styles.tableCell}>
-                  <label name="Acl Name:"
-                    style={{
-                      marginLeft: "0.2cm",
-                      fontSize: "smaller",
-                    }}
-                  >ACL Name
-                  </label>
-                </TableCell>
-                <TableCell sx={styles.tableCell}>
-                  <label name="Criterion:"
-                    style={{
-                      marginLeft: "0.2cm",
-                      fontSize: "smaller",
-                    }}
-                  >Criterion
-                  </label>
-                </TableCell>
-                <TableCell sx={styles.tableCell}>
-                  <label name="Index:"
-                    style={{
-                      marginLeft: "0.2cm",
-                      fontSize: "smaller",
-                    }}
-                  >Index
-                  </label>
-                </TableCell>
-                <TableCell sx={styles.tableCell}>
-                  <label name="Value:"
-                    style={{
-                      marginLeft: "0.2cm",
-                      fontSize: "smaller",
-                    }}
-                  >Value
-                  </label>
-                </TableCell>
-                <TableCell sx={styles.tableCell}>
-                  <label style={{ fontSize: "smaller" }}
-                  >Add/Delete</label>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-
-              {Array.from({ length: aclData?.length !== 0 ? aclData?.length : 1 }, (_, index) => (
-
-                < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
-                  <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                    <Form.Item
-                      name={`aclname_${index}`}
-                      style={styles.formItemSmall}
-                    // rules={[{ required: true, message: 'Please select an option' }]}
-                    >
-                      <Input
-                        placeholder="ACL Name"
-                        type='text'
-                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                      />
-                    </Form.Item>
+        <div style={{
+          width: screenWidth < 700 ? "10cm" : screenWidth > 700                     
+        }}
+        >
+          <TableContainer>
+            <Table sx={styles.table} aria-label="a dense table">
+              <TableHead sx={styles.tableHeader}>
+                <TableRow sx={styles.tableHeader}>
+                  <TableCell sx={styles.tableCell}>
+                    <label name="Acl Name:"
+                      style={{
+                        marginLeft: "0.2cm",
+                        fontSize: "smaller",
+                      }}
+                    >ACL Name
+                    </label>
                   </TableCell>
-                  <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                    <Form.Item
-                      name={`criterion_${index}`}
-                      style={styles.formItemSmall}
-                    // rules={[{ required: true, message: 'Please select an option' }]}
-                    >
-                      <Select
-                        placeholder="Select"
-                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                        // value={acl.criterion}
-                        // onChange={(value) => handleInputChange(acl.index, 'criterion', value)}
-                        required
-                      >
-                        <Option value="src">Source</Option>
-                        <Option value="dst_port">Destination-port</Option>
-                        <Option value="hdr(host)">Host</Option>
-                        <Option value="req_ssl_ver">SSL Version</Option>
-                        <Option value="path_beg">Path begin with</Option>
-                        <Option value="path_end">Path ends with</Option>
-                        <Option value="hdr_beg(host)">Host begin with</Option>
-                        <Option value="hdr_end(host)">Host ends with</Option>
-                        <Option value="method">Method</Option>
-                        <Option value="status">Status</Option>
-                      </Select>
-
-                    </Form.Item>
+                  <TableCell sx={styles.tableCell}>
+                    <label name="Criterion:"
+                      style={{
+                        marginLeft: "0.2cm",
+                        fontSize: "smaller",
+                      }}
+                    >Criterion
+                    </label>
                   </TableCell>
-                  <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                    <Form.Item
-                      name={`index_${index}`}
-                      style={styles.formItemSmall}
-                    >
-                      <Input
-                        type="number"
-                        disabled
-                        // value={record.index}
-                        // onChange={(e) => handleSelectChange(e.target.value, "index")}
-                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                      />
-                    </Form.Item>
+                  <TableCell sx={styles.tableCell}>
+                    <label name="Index:"
+                      style={{
+                        marginLeft: "0.2cm",
+                        fontSize: "smaller",
+                      }}
+                    >Index
+                    </label>
                   </TableCell>
-                  <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                    <Form.Item
-                      name={`value_${index}`}
-                      style={{ marginBottom: "5px" }}
-                    // rules={[{ required: true, message: 'Please select an option' }]}
-                    >
-                      <Input
-                        placeholder="Value"
-                        type='text'
-                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                      />
-                    </Form.Item>
+                  <TableCell sx={styles.tableCell}>
+                    <label name="Value:"
+                      style={{
+                        marginLeft: "0.2cm",
+                        fontSize: "smaller",
+                      }}
+                    >Value
+                    </label>
                   </TableCell>
-                  <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                    <Form.Item style={styles.formItemSmall}>
-                      &nbsp;&nbsp;
-                      <PlusCircleFilled onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px", color: "#1677ff" }} />
-                      &nbsp;&nbsp;&nbsp;
-                      <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)", cursor: "pointer" }}
-                        // onClick={() => handleDelete(index)} 
-                        onClick={() => {
-                          const frontendName = selectedfrontend;
-                          const indexvalues = form.getFieldValue(`index_${index}`);
-
-                          const ACLNames = form.getFieldValue(`aclname_${index}`)?.trim() !== "" ? form.getFieldValue(`aclname_${index}`) : null;
-                          const Criterion = form.getFieldValue(`criterion_${index}`)?.trim() !== "" ? form.getFieldValue(`criterion_${index}`) : null;
-                          const Value = form.getFieldValue(`value_${index}`)?.trim() !== "" ? form.getFieldValue(`value_${index}`) : null;
-                          const Index = form.getFieldValue(`index_${index}`);
-                          handleDelete(index);
-                          if (Criterion && ACLNames && Value) {
-
-
-                            console.error('frontend name or index is missing');
-
-
-                            const deleteBindData = {
-
-                              frontend: selectedfrontend,
-                              index: form.getFieldValue(`index_${index}`),
-                            };
-                            console.log("deleteServerData", deleteBindData);
-                            axios.post(IP + '/delete_acl_rule', deleteBindData, {
-
-                              headers: {
-                                'Authorization': localStoragekey,
-                                'Content-Type': 'application/json',
-                              },
-                            })
-                              .then(response => {
-                                if (response.status === 200) {
-                                  if (response.data.error === 0) {
-                                    message.success('Server Deleted successfully!');
-                                    // removeBackend(backendIndex);
-                                    window.location.reload(true);
-                                  } else if (response.data.error === 1) {
-                                    if (response.data.msg === "You are not a sudo user!") {
-                                      alert("You are not sudo user!");
-                                    } else {
-                                      console.error('Unexpected error value:', response.data.msg);
-                                    }
-                                  }
-                                } else if (response.status === 404) {
-                                  console.error('Server not found');
-                                } else {
-                                  console.error('Unexpected response status:', response.status);
-                                }
-                              })
-                              .catch(error => {
-                                console.error('Error:', error);
-                              });
-                          }
-                        }}
-
-                      />
-                    </Form.Item>
+                  <TableCell sx={styles.tableCell}>
+                    <label style={{ marginLeft:"5%",fontSize: "smaller" }}
+                    >Add/Delete</label>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+
+                {Array.from({ length: aclData?.length !== 0 ? aclData?.length : 1 }, (_, index) => (
+
+                  < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
+                    <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                      <Form.Item
+                        name={`aclname_${index}`}
+                        style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
+                      // rules={[{ required: true, message: 'Please select an option' }]}
+                      >
+                        <Input
+                          placeholder="ACL Name"
+                          type='text'
+                          style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                        />
+                      </Form.Item>
+                    </TableCell>
+                    <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                      <Form.Item
+                        name={`criterion_${index}`}
+                        style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
+                      // rules={[{ required: true, message: 'Please select an option' }]}
+                      >
+                        <Select
+                          placeholder="Select"
+                          style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                          // value={acl.criterion}
+                          // onChange={(value) => handleInputChange(acl.index, 'criterion', value)}
+                          required
+                        >
+                          <Option value="src">Source</Option>
+                          <Option value="dst_port">Destination-port</Option>
+                          <Option value="hdr(host)">Host</Option>
+                          <Option value="req_ssl_ver">SSL Version</Option>
+                          <Option value="path_beg">Path begin with</Option>
+                          <Option value="path_end">Path ends with</Option>
+                          <Option value="hdr_beg(host)">Host begin with</Option>
+                          <Option value="hdr_end(host)">Host ends with</Option>
+                          <Option value="method">Method</Option>
+                          <Option value="status">Status</Option>
+                        </Select>
+
+                      </Form.Item>
+                    </TableCell>
+                    <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                      <Form.Item
+                        name={`index_${index}`}
+                        style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
+                      >
+                        <Input
+                          type="number"
+                          disabled
+                          // value={record.index}
+                          // onChange={(e) => handleSelectChange(e.target.value, "index")}
+                          style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                        />
+                      </Form.Item>
+                    </TableCell>
+                    <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                      <Form.Item
+                        name={`value_${index}`}
+                        style={screenWidth < 768 ? mobileStyles.formItem : styles.formItemSmall}
+                      // rules={[{ required: true, message: 'Please select an option' }]}
+                      >
+                        <Input
+                          placeholder="Value"
+                          type='text'
+                          style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                        />
+                      </Form.Item>
+                    </TableCell>
+                    <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                      <Form.Item style={{width:"5cm",marginBottom: "5px"}}>
+                        &nbsp;&nbsp;
+                        <PlusCircleFilled onClick={() => handleClickOnPlusButton(index)} style={{ fontSize: "20px", color: "#1677ff" }} />
+                        &nbsp;&nbsp;&nbsp;
+                        <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)", cursor: "pointer" }}
+                          // onClick={() => handleDelete(index)} 
+                          onClick={() => {
+                            const frontendName = selectedfrontend;
+                            const indexvalues = form.getFieldValue(`index_${index}`);
+
+                            const ACLNames = form.getFieldValue(`aclname_${index}`)?.trim() !== "" ? form.getFieldValue(`aclname_${index}`) : null;
+                            const Criterion = form.getFieldValue(`criterion_${index}`)?.trim() !== "" ? form.getFieldValue(`criterion_${index}`) : null;
+                            const Value = form.getFieldValue(`value_${index}`)?.trim() !== "" ? form.getFieldValue(`value_${index}`) : null;
+                            const Index = form.getFieldValue(`index_${index}`);
+                            handleDelete(index);
+                            if (Criterion && ACLNames && Value) {
+
+
+                              console.error('frontend name or index is missing');
+
+
+                              const deleteBindData = {
+
+                                frontend: selectedfrontend,
+                                index: form.getFieldValue(`index_${index}`),
+                              };
+                              console.log("deleteServerData", deleteBindData);
+                              axios.post(IP + '/delete_acl_rule', deleteBindData, {
+
+                                headers: {
+                                  'Authorization': localStoragekey,
+                                  'Content-Type': 'application/json',
+                                },
+                              })
+                                .then(response => {
+                                  if (response.status === 200) {
+                                    if (response.data.error === 0) {
+                                      message.success('Server Deleted successfully!');
+                                      // removeBackend(backendIndex);
+                                      window.location.reload(true);
+                                    } else if (response.data.error === 1) {
+                                      if (response.data.msg === "You are not a sudo user!") {
+                                        message.info("You are not sudo user!");
+                                      } else {
+                                        console.error('Unexpected error value:', response.data.msg);
+                                      }
+                                    }
+                                  } else if (response.status === 404) {
+                                    console.error('Server not found');
+                                  } else {
+                                    console.error('Unexpected response status:', response.status);
+                                  }
+                                })
+                                .catch(error => {
+                                  console.error('Error:', error);
+                                });
+                            }
+                          }}
+
+                        />
+                      </Form.Item>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
         &nbsp;&nbsp;&nbsp;
         &nbsp;&nbsp;&nbsp;
         <Form.Item style={{ display: 'flex', justifyContent: 'center', }} >
-          <Button type="default" onClick={() => {
+          <Button type="primary" onClick={() => {
             form
               .validateFields()
               .then(values => {

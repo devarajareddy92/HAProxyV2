@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input, Select, Card, List, Modal, message, Spin, Tooltip, Button, Form, Row, Col, Radio, Divider } from 'antd';
 import {
     PlusCircleFilled,
     MinusCircleFilled,
-    PlusCircleOutlined,
     DeleteOutlined,
-    MinusCircleOutlined,
     DownOutlined,
     UpOutlined,
     ExclamationCircleFilled,
@@ -13,19 +11,16 @@ import {
     EditOutlined
 
 } from '@ant-design/icons';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
+import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+
+import { useMediaQuery } from 'react-responsive';
 
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 const { Option } = Select;
 
-const Backend = (props) => {
+const Backend = () => {
     const IP = IpAddress();
     const [newJsonData, setNewJsonData] = useState([{ type: "new", server: [], data: { name: '', mode: '', balance: { algorithm: "" } } }]);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -39,6 +34,8 @@ const Backend = (props) => {
     const [formValues, setFormValues] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
+    const containerRef = useRef(null);
+    const isMobile = useMediaQuery({ maxWidth: 576 });
 
     useEffect(() => {
         const handleResize = () => {
@@ -50,7 +47,13 @@ const Backend = (props) => {
         };
     }, []);
 
-    const localStoragekey = localStorage.getItem('proToken')
+    const localStoragekey = localStorage.getItem("proToken");
+    useEffect(() => {
+        if (!localStoragekey) {
+            console.log('Token:', localStoragekey);
+            navigate('/')
+        }
+    }, [])
     console.log("the token is ", localStoragekey)
 
     useEffect(() => {
@@ -105,10 +108,42 @@ const Backend = (props) => {
         setNewJsonData(updatedData);
     };
 
+
     const addBackend = () => {
-        const newBackend = { type: "new", server: [], data: { name: '', mode: '', balance: { algorithm: "" } } };
-        setNewJsonData([...newJsonData, newBackend]);
+        const newBackend = {
+            backend: {
+                name: '',
+                mode: '',
+                balance: { algorithm: "" }
+            },
+            server: {
+                data: [
+                    {
+                        address: '',
+                        check: '',
+                        name: '',
+                        port: ''
+                    }
+                ]
+            }
+        };
+        setJsonData([...JsonData, newBackend]);
     };
+
+    const handleDeletenew = (index) => {
+        var tempData = [...JsonData];
+        tempData.splice(index, 1);
+        setJsonData(tempData)
+    };
+    useEffect(() => {
+        if (containerRef.current) {
+            const children = containerRef.current.children;
+            if (children.length > 0) {
+                const lastChild = children[children.length - 1];
+                lastChild.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [JsonData]);
 
     const handlePrimaryContactChange = (index, value) => {
         const updatedData = [...newJsonData];
@@ -129,45 +164,52 @@ const Backend = (props) => {
         updatedData[index].server.data.push({ name: '', address: '', port: '', check: 'disabled' });
         setJsonData(updatedData);
     };
+
     const handleDelete = (backendIndex, form, removeBackend) => {
         Modal.confirm({
             title: 'Are you sure you want to delete this backend?',
             // content: 'This action cannot be undone.',
             onOk() {
-                const deleteBackendData = {
-                    backend: form.getFieldValue(`Backendname_${backendIndex}`)
-                };
-                console.log("deleteBackendData", deleteBackendData);
+                const backend = form.getFieldValue(`Backendname_${backendIndex}`)?.trim() !== "" ? form.getFieldValue(`Backendname_${backendIndex}`) : null;
+                const backendbalance = form.getFieldValue(`Balance_${backendIndex}`)?.trim() !== "" ? form.getFieldValue(`Balance_${backendIndex}`) : null;
+                const mode = form.getFieldValue(`mode_${backendIndex}`)?.trim() !== "" ? form.getFieldValue(`mode_${backendIndex}`) : null;
 
-                axios.post(IP + '/delete_backend', deleteBackendData, {
-                    headers: {
-                        'Authorization': localStoragekey,
-                        'Content-Type': 'application/json',
-                    },
-                })
-                    .then(response => {
-                        if (response.status === 200) {
-                            if (response.data.error === 0) {
-                                message.success('Backend Deleted successfully!');
-                                removeBackend(backendIndex);
-                                window.location.reload(true);
-                            } else if (response.data.error === 1) {
-                                if (response.data.msg === "You are not a sudo user!") {
-                                    alert("You are not a sudo user!");
-                                } else {
-                                    console.error('Unexpected error value:', response.data.msg);
-                                }
-                            }
-                        } else if (response.status === 404) {
-                            console.error('Backend not found');
-                        } else {
-                            console.error('Unexpected response status:', response.status);
-                        }
+                handleDeletenew(backendIndex);
+                if (backend && backendbalance && mode) {
+                    const deleteBackendData = {
+                        backend: form.getFieldValue(`Backendname_${backendIndex}`)
+                    };
+                    console.log("deleteBackendData", deleteBackendData);
+
+                    axios.post(IP + '/delete_backend', deleteBackendData, {
+                        headers: {
+                            'Authorization': localStoragekey,
+                            'Content-Type': 'application/json',
+                        },
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-
+                        .then(response => {
+                            if (response.status === 200) {
+                                if (response.data.error === 0) {
+                                    message.success('Backend Deleted successfully!');
+                                    removeBackend(backendIndex);
+                                    window.location.reload(true);
+                                } else if (response.data.error === 1) {
+                                    if (response.data.msg === "You are not a sudo user!") {
+                                        message.info("You are not a sudo user!");
+                                    } else {
+                                        console.error('Unexpected error value:', response.data.msg);
+                                    }
+                                }
+                            } else if (response.status === 404) {
+                                console.error('Backend not found');
+                            } else {
+                                console.error('Unexpected response status:', response.status);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
             },
             onCancel() {
                 console.log('Deletion cancelled');
@@ -272,6 +314,21 @@ const Backend = (props) => {
         formItemSmall: {
             marginBottom: "5px",
         },
+        scrollableTable: {
+            overflowX: 'auto'
+        },
+        // isMobile ? 'auto' : 'hidden',
+        '@media (max-width: 768px)': {
+            scrollableTable: {
+                overflowX: 'scroll',
+            },
+            table: {
+                minWidth: '100%',
+            },
+            tableCell: {
+                whiteSpace: 'nowrap',
+            },
+        },
     };
     console.log("ReceivedJson", JsonData);
     const onFinish = (values) => {
@@ -326,13 +383,13 @@ const Backend = (props) => {
                 if (response.status === 200) {
                     message.success('Saved successfully!');
                 } else {
-                    alert('Save failed: ' + response.data.msg);
+                    message.error('Save failed: ' + response.data.msg);
                 }
             })
             .catch(error => {
                 console.error('Save error:', error);
                 setLoadingFlag(false);
-                alert('An error occurred while saving.');
+                message.info('An error occurred while saving.');
             });
 
     };
@@ -359,10 +416,6 @@ const Backend = (props) => {
                     console.log("servers", server)
 
                     form.setFieldsValue({
-
-                        // [`Backendname_${i}`]: backend.name,
-                        // [`Balance_${i}`]: backend.balance.algorithm,
-                        // [`mode_${i}`]: backend.mode,
                         [`servername_${i}_${j}`]: server.name,
                         [`ipFQDN_${i}_${j}`]: server.address,
                         [`portNumber_${i}_${j}`]: server.port,
@@ -382,7 +435,6 @@ const Backend = (props) => {
                 form={form}
                 onFinish={onFinish}
             >
-
                 <h3 >Backend</h3>
                 &nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;
@@ -396,258 +448,265 @@ const Backend = (props) => {
                     </Button>
                 </Row>
                 {/* {Array.from({ length: backendIndexplus }, (_, index) => ( */}
-                {Array.from({ length: JsonData.length }, (_, backendIndex) => (
+                <div ref={containerRef}>
+                    {Array.from({ length: JsonData.length }, (_, backendIndex) => (
 
-                    <div key={backendIndex}>
-                        <Row gutter={16} style={{ marginBottom: '20px' }}>
-                            <Col span={8}>
-                                <Form.Item name={`Backendname_${backendIndex}`} label="Backend Name" required>
-                                    <Input
-
-                                        placeholder="Enter the backend value"
-                                        // value={backend.data.name}
-                                        // onChange={(e) => handleNameChange(e.target.value, backendIndex)}
+                        <div key={backendIndex}>
+                            <Row gutter={16} style={{ marginBottom: '20px' }}>
+                                <Col xs={24} sm={12} md={8}>
+                                    <Form.Item name={`Backendname_${backendIndex}`} label="Backend Name" required>
+                                        <Input
+                                            placeholder="Enter the backend value"
+                                            // value={backend.data.name}
+                                            // onChange={(e) => handleNameChange(e.target.value, backendIndex)}
+                                            required
+                                            style={styles.input}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                {/* <Col span={8}> */}
+                                <Col xs={24} sm={12} md={8}>
+                                    <Form.Item
+                                        label={
+                                            <Tooltip title="Specify the load-balancing algorithm for distributing traffic among backend servers">
+                                                Balance :
+                                            </Tooltip>
+                                        }
+                                        name={`Balance_${backendIndex}`}
                                         required
-                                        style={styles.input}
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    label={
-                                        <Tooltip title="Specify the load-balancing algorithm for distributing traffic among backend servers">
-                                            Balance :
-                                        </Tooltip>
-                                    }
-                                    name={`Balance_${backendIndex}`}
-                                    required
-                                >
-                                    <Select
-                                        placeholder="Select"
-
-                                        // value={backend.data.balance.algorithm}
-                                        onChange={(value) => handleAlgorithmChange(value, backendIndex)}
-                                        required
-                                        style={styles.input}
                                     >
-                                        <Option value="roundrobin">roundrobin</Option>
-                                        <Option value="static-rr">static-rr</Option>
-                                        <Option value="leastconn">leastconn</Option>
-                                        <Option value="first">first</Option>
-                                        <Option value="source">source</Option>
-                                        <Option value="uri">uri</Option>
-                                        <Option value="url_param">url_param</Option>
-                                        <Option value="hdr">hdr</Option>
-                                        <Option value="random">random</Option>
-                                        <Option value="rdp-cookie">rdp-cookie</Option>
-                                        <Option value="hash">hash</Option>
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item name={`mode_${backendIndex}`} label="Mode" required>
-                                    <Select
-                                        placeholder="Select"
+                                        <Select
+                                            placeholder="Select"
 
-                                        // value={backend.data.mode}
-                                        onChange={(value) => handleModeChange(value, backendIndex)}
-                                        required
-                                        style={styles.input}
+                                            // value={backend.data.balance.algorithm}
+                                            onChange={(value) => handleAlgorithmChange(value, backendIndex)}
+                                            required
+                                            style={styles.input}
+                                        >
+                                            <Option value="roundrobin">roundrobin</Option>
+                                            <Option value="static-rr">static-rr</Option>
+                                            <Option value="leastconn">leastconn</Option>
+                                            <Option value="first">first</Option>
+                                            <Option value="source">source</Option>
+                                            <Option value="uri">uri</Option>
+                                            <Option value="url_param">url_param</Option>
+                                            <Option value="hdr">hdr</Option>
+                                            <Option value="random">random</Option>
+                                            <Option value="rdp-cookie">rdp-cookie</Option>
+                                            <Option value="hash">hash</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                                {/* <Col span={6}> */}
+                                <Col xs={24} sm={12} md={6}>
+                                    <Form.Item name={`mode_${backendIndex}`} label="Mode" required>
+                                        <Select
+                                            placeholder="Select"
+
+                                            // value={backend.data.mode}
+                                            onChange={(value) => handleModeChange(value, backendIndex)}
+                                            required
+                                            style={styles.input}
+                                        >
+                                            <Option value="TCP">TCP</Option>
+                                            <Option value="HTTP">HTTP</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={24} sm={12} md={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Button
+                                        type="danger"
+                                        icon={<DeleteOutlined style={{ color: "white" }} />}
+                                        style={{ backgroundColor: "#d93737", borderColor: "red" }}
+                                        onClick={() =>
+                                            handleDelete(backendIndex, form, removeBackend(backendIndex))}
                                     >
-                                        <Option value="TCP">TCP</Option>
-                                        <Option value="HTTP">HTTP</Option>
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                            <Col span={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Button
-                                    type="danger"
-                                    // icon={<MinusCircleFilled />}
-                                    icon={<DeleteOutlined style={{ color: "white" }} />}
-                                    style={{ backgroundColor: "#d93737", borderColor: "red" }}
-                                    onClick={() => handleDelete(backendIndex, form, removeBackend)}
-                                >
-                                </Button>
-                            </Col>
-                        </Row>
-                        <Card style={styles.card}>
-                            {/* style={{ marginTop: "0.5cm", backgroundColor: "#f0f2f2", width: "100%" }} */}
-
-                            <div
-                                style={{ width: "100%", cursor: "pointer" }} onClick={() => setContactPersonDetailsIsOpen(!contactPersonDeatilsIsOpen)}>
-                                <a style={{ fontSize: "small", fontWeight: "500", color: "black", marginLeft: "0.2cm" }}>
-                                    {contactPersonDeatilsIsOpen ? <UpOutlined onClick={() => setContactPersonDetailsIsOpen(false)} /> : <DownOutlined onClick={() => setContactPersonDetailsIsOpen(true)} />} Server Details</a>
-
-                            </div>
-
-                            {contactPersonDeatilsIsOpen && (
-                                <div>
-
-                                    <TableContainer>
-                                        <Table sx={styles.table} aria-label="a dense table">
-                                            <TableHead sx={styles.tableHeader}>
-                                                <TableRow sx={styles.tableHeader}>
-                                                    <TableCell sx={styles.tableCell}>
-                                                        <label
-                                                            name="servername"
-                                                            style={{
-                                                                marginLeft: "0.2cm",
-                                                                fontSize: "smaller",
-                                                            }}
-                                                        >
-                                                            Server Name
-                                                        </label>
-                                                    </TableCell>
-                                                    <TableCell sx={styles.tableCell}>
-                                                        <label name="ip/fqdn" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
-                                                            IP/FQDN
-                                                        </label>
-                                                    </TableCell>
-                                                    <TableCell sx={styles.tableCell}>
-                                                        <label name="portnumber" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
-                                                            Port Number
-                                                        </label>
-                                                    </TableCell>
-                                                    <TableCell sx={styles.tableCell}>
-                                                        <label name="check" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
-                                                            Check
-                                                        </label>
-                                                    </TableCell>
-                                                    <TableCell sx={styles.tableCell}>
-                                                        <label style={{ fontSize: "smaller" }}>Add/Delete</label>
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {Array.from({ length: JsonData[backendIndex].server.data.length !== 0 ? JsonData[backendIndex].server.data.length : 1 }, (_, index) => (
-
-                                                    < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
-                                                        <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                                                            <Form.Item
-                                                                name={`servername_${backendIndex}_${index}`}
-                                                                style={styles.formItemSmall}
-                                                            // rules={[{ required: true, message: 'Please input the Server Name' }]}
-                                                            >
-                                                                <Input
-                                                                    placeholder="Server Name"
-                                                                    style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                                />
-                                                            </Form.Item>
-                                                        </TableCell>
-                                                        <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                                                            <Form.Item
-                                                                name={`ipFQDN_${backendIndex}_${index}`}
-                                                                style={styles.formItemSmall}
-                                                            // rules={[{ required: true, message: 'Please input the IP/FQDN' }]}
-                                                            >
-                                                                <Input
-                                                                    placeholder="IP/FQDN"
-                                                                    style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                                />
-                                                            </Form.Item>
-                                                        </TableCell>
-                                                        <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                                                            <Form.Item
-                                                                name={`portNumber_${backendIndex}_${index}`}
-                                                                style={styles.formItemSmall}
-                                                            // rules={[{ required: true, message: 'Please input the Port Number' }]}
-                                                            >
-                                                                <Input
-                                                                    placeholder="Port Number"
-                                                                    style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                                />
-                                                            </Form.Item>
-                                                        </TableCell>
-                                                        <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                                                            <Form.Item
-                                                                name={`check_${backendIndex}_${index}`}
-                                                                style={styles.formItemSmall}
-                                                            // rules={[{ required: true, message: 'Please select an option' }]}
-                                                            >
-                                                                <Select
-                                                                    placeholder="Select"
-                                                                    style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
-                                                                // onChange={(value) => handlePrimaryContactChange(index, value)}
-                                                                >
-                                                                    <Option value="enabled">Enabled</Option>
-                                                                    <Option value="disabled">Disabled</Option>
-                                                                </Select>
-                                                            </Form.Item>
-                                                        </TableCell>
-
-                                                        <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
-                                                            <Form.Item style={styles.formItemSmall}>
-                                                                <PlusCircleFilled onClick={() => handleClickOnPlusButton(backendIndex)} style={{ fontSize: "20px", color: "#1677ff" }} />
-                                                                &nbsp;&nbsp;&nbsp;
-                                                                <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)" }}
-                                                                    onClick={() => {
-                                                                        const backendName = form.getFieldValue(`Backendname_${backendIndex}`);
-                                                                        const serverName = form.getFieldValue(`servername_${backendIndex}_${index}`);
-
-                                                                        if (!backendName || !serverName) {
-                                                                            handleClickOnMinusOfButton(backendIndex, index);
-
-                                                                            console.error('Backend name or server name is missing');
-                                                                            return;
-                                                                        }
-                                                                        const deleteServerData = {
-
-                                                                            backend: backendName,
-                                                                            server: serverName
-                                                                        };
-                                                                        console.log("deleteServerData", deleteServerData);
-
-                                                                        axios.post(IP + '/delete_server', deleteServerData, {
-
-                                                                            headers: {
-                                                                                'Authorization': localStoragekey,
-                                                                                'Content-Type': 'application/json',
-                                                                            },
-                                                                        })
-                                                                            .then(response => {
-                                                                                if (response.status === 200) {
-                                                                                    if (response.data.error === 0) {
-                                                                                        message.success('Server Deleted successfully!');
-                                                                                        // removeBackend(backendIndex);
-                                                                                        handleClickOnMinusOfButton(backendIndex, index);
-                                                                                        window.location.reload(true);
-                                                                                    } else if (response.data.error === 1) {
-                                                                                        if (response.data.msg === "You are not a sudo user!") {
-                                                                                            alert("You are not sudo user!");
-                                                                                        } else {
-                                                                                            console.error('Unexpected error value:', response.data.msg);
-                                                                                        }
-                                                                                    }
-                                                                                } else if (response.status === 404) {
-                                                                                    console.error('Server not found');
-                                                                                } else {
-                                                                                    console.error('Unexpected response status:', response.status);
-                                                                                }
-                                                                            })
-                                                                            .catch(error => {
-                                                                                console.error('Error:', error);
-                                                                            });
-
-                                                                    }}
-
-                                                                />
-                                                            </Form.Item>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
+                                    </Button>
+                                </Col>
+                            </Row>
+                            <Card style={styles.card}>
+                                {/* style={{ marginTop: "0.5cm", backgroundColor: "#f0f2f2", width: "100%" }} */}
+                                <div
+                                    style={{ width: "100%", cursor: "pointer" }} onClick={() => setContactPersonDetailsIsOpen(!contactPersonDeatilsIsOpen)}>
+                                    <a style={{ fontSize: "small", fontWeight: "500", color: "black", marginLeft: "0.2cm" }}>
+                                        {contactPersonDeatilsIsOpen ? <UpOutlined onClick={() => setContactPersonDetailsIsOpen(false)} /> : <DownOutlined
+                                            onClick={() => setContactPersonDetailsIsOpen(true)} />}
+                                        Server Details
+                                    </a>
                                 </div>
 
-                            )}
-                        </Card>
-                        <Divider />
-                    </div>
+                                {contactPersonDeatilsIsOpen && (
+                                    <div style={{
+                                        width: screenWidth < 700 ? "10cm" : screenWidth > 700
+                                    }}
+                                    >
+                                        <TableContainer >
+                                            <Table sx={{ minWidth: 650 }} aria-label="a dense table">
+                                                <TableHead sx={styles.tableHeader}>
+                                                    <TableRow sx={styles.tableHeader}>
+                                                        <TableCell sx={styles.tableCell}>
+                                                            <label
+                                                                name="servername"
+                                                                style={{
+                                                                    marginLeft: "0.2cm",
+                                                                    fontSize: "smaller",
+                                                                }}
+                                                            >
+                                                                Server Name
+                                                            </label>
+                                                        </TableCell>
+                                                        <TableCell sx={styles.tableCell}>
+                                                            <label name="ip/fqdn" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                                IP/FQDN
+                                                            </label>
+                                                        </TableCell>
+                                                        <TableCell sx={styles.tableCell}>
+                                                            <label name="portnumber" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                                Port Number
+                                                            </label>
+                                                        </TableCell>
+                                                        <TableCell sx={styles.tableCell}>
+                                                            <label name="check" style={{ marginLeft: "0.2cm", fontSize: "smaller" }}>
+                                                                Check
+                                                            </label>
+                                                        </TableCell>
+                                                        <TableCell sx={styles.tableCell}>
+                                                            <label style={{ fontSize: "smaller" }}>Add/Delete</label>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {Array.from({ length: JsonData[backendIndex].server.data.length !== 0 ? JsonData[backendIndex].server.data.length : 1 }, (_, index) => (
 
-                ))}
+                                                        < TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0, marginTop: "0.5cm" }, height: "1rem" }}>
+                                                            <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                                <Form.Item
+                                                                    name={`servername_${backendIndex}_${index}`}
+                                                                    style={styles.formItemSmall}
+                                                                // rules={[{ required: true, message: 'Please input the Server Name' }]}
+                                                                >
+                                                                    <Input
+                                                                        placeholder="Server Name"
+                                                                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                                    />
+                                                                </Form.Item>
+                                                            </TableCell>
+                                                            <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                                <Form.Item
+                                                                    name={`ipFQDN_${backendIndex}_${index}`}
+                                                                    style={styles.formItemSmall}
+                                                                // rules={[{ required: true, message: 'Please input the IP/FQDN' }]}
+                                                                >
+                                                                    <Input
+                                                                        placeholder="IP/FQDN"
+                                                                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                                    />
+                                                                </Form.Item>
+                                                            </TableCell>
+                                                            <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                                <Form.Item
+                                                                    name={`portNumber_${backendIndex}_${index}`}
+                                                                    style={styles.formItemSmall}
+                                                                // rules={[{ required: true, message: 'Please input the Port Number' }]}
+                                                                >
+                                                                    <Input
+                                                                        placeholder="Port Number"
+                                                                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                                    />
+                                                                </Form.Item>
+                                                            </TableCell>
+                                                            <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                                <Form.Item
+                                                                    name={`check_${backendIndex}_${index}`}
+                                                                    style={styles.formItemSmall}
+                                                                // rules={[{ required: true, message: 'Please select an option' }]}
+                                                                >
+                                                                    <Select
+                                                                        placeholder="Select"
+                                                                        style={{ width: "4cm", marginTop: "0.2cm", marginLeft: "0.1cm", }}
+                                                                    // onChange={(value) => handlePrimaryContactChange(index, value)}
+                                                                    >
+                                                                        <Option value="enabled">Enabled</Option>
+                                                                        <Option value="disabled">Disabled</Option>
+                                                                    </Select>
+                                                                </Form.Item>
+                                                            </TableCell>
+
+                                                            <TableCell sx={{ padding: "0", borderBottom: "none", width: "5cm" }}>
+                                                                <Form.Item style={{width:"5cm",marginBottom: "5px"}}>
+                                                                    &nbsp;&nbsp;
+                                                                    <PlusCircleFilled onClick={() => handleClickOnPlusButton(backendIndex)} style={{ fontSize: "20px", color: "#1677ff" }} />
+                                                                    &nbsp;&nbsp;&nbsp;
+                                                                    <MinusCircleFilled style={{ fontSize: "20px", color: "rgb(255 22 22)" }}
+                                                                        onClick={() => {
+                                                                            const backendName = form.getFieldValue(`Backendname_${backendIndex}`);
+                                                                            const serverName = form.getFieldValue(`servername_${backendIndex}_${index}`);
+
+                                                                            if (!backendName || !serverName) {
+                                                                                handleClickOnMinusOfButton(backendIndex, index);
+
+                                                                                console.error('Backend name or server name is missing');
+                                                                                return;
+                                                                            }
+                                                                            const deleteServerData = {
+
+                                                                                backend: backendName,
+                                                                                server: serverName
+                                                                            };
+                                                                            console.log("deleteServerData", deleteServerData);
+
+                                                                            axios.post(IP + '/delete_server', deleteServerData, {
+
+                                                                                headers: {
+                                                                                    'Authorization': localStoragekey,
+                                                                                    'Content-Type': 'application/json',
+                                                                                },
+                                                                            })
+                                                                                .then(response => {
+                                                                                    if (response.status === 200) {
+                                                                                        if (response.data.error === 0) {
+                                                                                            message.success('Server Deleted successfully!');
+                                                                                            // removeBackend(backendIndex);
+                                                                                            handleClickOnMinusOfButton(backendIndex, index);
+                                                                                            window.location.reload(true);
+                                                                                        } else if (response.data.error === 1) {
+                                                                                            if (response.data.msg === "You are not a sudo user!") {
+                                                                                                message.info("You are not sudo user!");
+                                                                                            } else {
+                                                                                                console.error('Unexpected error value:', response.data.msg);
+                                                                                            }
+                                                                                        }
+                                                                                    } else if (response.status === 404) {
+                                                                                        console.error('Server not found');
+                                                                                    } else {
+                                                                                        console.error('Unexpected response status:', response.status);
+                                                                                    }
+                                                                                })
+                                                                                .catch(error => {
+                                                                                    console.error('Error:', error);
+                                                                                });
+
+                                                                        }}
+
+                                                                    />
+                                                                </Form.Item>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </div>
+
+                                )}
+                            </Card>
+                            <Divider />
+                        </div>
+
+                    ))}
+                </div>
                 <Form.Item style={{ display: 'flex', justifyContent: 'center', }} >
-                    <Button type="default" onClick={() => {
+                    <Button type="primary" onClick={() => {
                         form
                             .validateFields()
                             .then(values => {
@@ -667,7 +726,7 @@ const Backend = (props) => {
 
                     <Button style={{ alignContent: 'center' }} type="primary"
                         onClick={() => {
-                            
+
                             fetch(IP + 'deploy_config', {
                                 headers: {
                                     'Authorization': localStoragekey,
@@ -683,10 +742,10 @@ const Backend = (props) => {
                                                 'Authorization': localStoragekey,
                                             }
                                         })
-                                        .then(response => {
-                                            console.log("Regenerate response:", response);
-                                            return response.json();
-                                        })
+                                            .then(response => {
+                                                console.log("Regenerate response:", response);
+                                                return response.json();
+                                            })
                                             .then(data => {
                                                 console.log("responseresponse", data);
                                                 if (data.error === 0) {
@@ -697,7 +756,7 @@ const Backend = (props) => {
                                                 } else if (data.error === 1) {
                                                     // navigate("/")
                                                     message.error("Unauthorized");
-                                                }else {
+                                                } else {
                                                     console.error('Unexpected error value:', data.error);
                                                 }
                                             })
