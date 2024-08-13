@@ -25,30 +25,28 @@ pipeline {
                 withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
                     // Build the React application
                     sh 'CI= npm run build'
-                    //sh 'DISABLE_ESLINT_PLUGIN=true npm run build'
-                   // sh 'npm run build'
                 }
             }
         }
-        stage('Test') {
+       
+        stage('Build Docker Image') {
             steps {
-                withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
-                    // Run tests
-                    sh 'npm test'
+                script {
+                    // Build the Docker image
+                    sh 'docker build -t myapp:latest .'
                 }
             }
         }
-        stage('Deploy') {
+        stage('Deploy Docker Container') {
             steps {
-                // Deploy the application (this step will vary based on your deployment method)
-                // Example: copying build files to a web server
-                withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
+                script {
+                    // Stop and remove the existing container if it exists
                     sh '''
-                    if [ -d /var/www/html ]; then
-                        sudo rm -rf /var/www/html/*
-                        sudo cp -r build/* /var/www/html/
-                    fi
+                    docker stop myapp || true
+                    docker rm myapp || true
                     '''
+                    // Run the Docker container
+                    sh 'docker run -d -p 80:80 --name myapp myapp:latest'
                 }
             }
         }
@@ -57,11 +55,11 @@ pipeline {
     post {
         success {
             // Actions to perform on successful build
-            echo 'Build completed successfully!'
+            echo 'Build and deployment completed successfully!'
         }
         failure {
             // Actions to perform on failed build
-            echo 'Build failed!'
+            echo 'Build or deployment failed!'
         }
     }
 }
