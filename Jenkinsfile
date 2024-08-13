@@ -24,6 +24,7 @@ pipeline {
             steps {
                 withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
                     // Build the React application
+                    sh 'unset CI'
                     sh 'npm run build'
                 }
             }
