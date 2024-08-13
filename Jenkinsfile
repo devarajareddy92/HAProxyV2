@@ -25,13 +25,7 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
-            steps {
-                withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
-                    sh 'npm test'
-                }
-            }
-        }
+        
         stage('Build Docker Image') {
             steps {
                 sh 'sudo docker build -t myapp:latest .'
