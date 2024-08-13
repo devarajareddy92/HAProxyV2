@@ -8,13 +8,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the source code from the repository
                 git 'https://github.com/devarajareddy92/HAProxyV2.git'
             }
         }
         stage('Install Dependencies') {
             steps {
-                // Use NodeJS wrapper to ensure the environment is set up correctly
                 withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
                     sh 'npm install'
                 }
@@ -23,43 +21,35 @@ pipeline {
         stage('Build') {
             steps {
                 withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
-                    // Build the React application
                     sh 'CI= npm run build'
                 }
             }
         }
-       
-        stage('Build Docker Image') {
+        stage('Test') {
             steps {
-                script {
-                    // Build the Docker image
-                    sh 'sudo docker build -t myapp:latest .'
+                withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
+                    sh 'npm test'
                 }
             }
         }
-        stage('Deploy Docker Container') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    // Stop and remove the existing container if it exists
-                    sh '''
-                    sudo docker stop myapp || true
-                    sudo docker rm myapp || true
-                    '''
-                    // Run the Docker container
-                    sh 'sudo docker run -d -p 80:80 --name myapp myapp:latest'
-                }
+                sh 'sudo docker build -t myapp:latest .'
+            }
+        }
+        stage('Run Docker Container') {
+            steps {
+                sh 'sudo docker run -d -p 8081:80 myapp:latest' // Maps container's port 80 to host's port 8081
             }
         }
     }
 
     post {
         success {
-            // Actions to perform on successful build
-            echo 'Build and deployment completed successfully!'
+            echo 'Build completed successfully!'
         }
         failure {
-            // Actions to perform on failed build
-            echo 'Build or deployment failed!'
+            echo 'Build failed!'
         }
     }
 }
