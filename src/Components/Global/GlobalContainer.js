@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Select, Tooltip, Row, Col, Spin } from 'antd';
+import { Form, Input, Button, message, Select,  Row, Col, } from 'antd';
 import '../CssFolder/StyleCss.css';
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LoadingOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 

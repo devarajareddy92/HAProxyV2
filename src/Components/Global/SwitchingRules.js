@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Select, Button, Row, Col, Tooltip, message } from 'antd';
-import { PlusCircleOutlined, MinusCircleOutlined, PlusCircleFilled, MinusCircleFilled } from '@ant-design/icons';
+import { Form, Input, Select, Button, Row, Col,  message } from 'antd';
+import {  PlusCircleFilled, MinusCircleFilled } from '@ant-design/icons';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -10,7 +10,6 @@ import TableRow from "@mui/material/TableRow";
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { width } from '@fortawesome/free-solid-svg-icons/fa0';
 
 const { Option } = Select;
 
@@ -28,7 +27,6 @@ const SwitchingRules = () => {
     const [aclData, setAclData] = useState([]);
     const [selectedrule, setSelectedRule] = useState(null);
     const [index, setIndex] = useState(0);
-    const [count, setCount] = useState(1);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [Jsondata, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
@@ -37,7 +35,6 @@ const SwitchingRules = () => {
     const [selectedfrontend, setSelectedFrontend] = useState(null);
     const [ALLaclNames, setALLAclNames] = useState(null);
     const [form] = Form.useForm();
-    const location = useLocation();
     const navigate = useNavigate();
     const [rulesData, setRulesData] = useState(null);
 
@@ -76,11 +73,11 @@ const SwitchingRules = () => {
 
 
 
-    const handleRemoveAcl = (index) => {
-        const updatedData = aclData.filter(acl => acl.index !== index);
-        setAclData(updatedData);
-        message.success('ACL deleted successfully');
-    };
+    // const handleRemoveAcl = (index) => {
+    //     const updatedData = aclData.filter(acl => acl.index !== index);
+    //     setAclData(updatedData);
+    //     message.success('ACL deleted successfully');
+    // };
 
     useEffect(() => {
         setLoadingFlag(true);

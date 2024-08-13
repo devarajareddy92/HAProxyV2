@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Typography, Collapse, message, Card, Tooltip, Alert } from 'antd';
-import axios from 'axios';
 import { CheckCircleOutlined, CloseCircleOutlined, WarningOutlined } from '@ant-design/icons';
 
 import { useNavigate } from 'react-router-dom';

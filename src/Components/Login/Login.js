@@ -12,8 +12,6 @@ const { Content } = Layout;
 
 const LoginForm = () => {
     const IP = IpAddress();
-    const [username, setUserName] = useState('');
-    const [password, setPassword] = useState('');
     const [proToken, setproToken] = useState(null);
     const [error, setError] = useState(null);
     const navigate = useNavigate();

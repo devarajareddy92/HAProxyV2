@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, Select, Button, Divider, message, Spin } from "antd";
-// import "./Default.css";
+import { Form, InputNumber, Select, Button, Divider, message,  } from "antd";
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LoadingOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -15,7 +13,6 @@ const Default = () => {
     const [form] = Form.useForm();
     const [Jsondata, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
-    const [fetchLoading, setFetchLoading] = useState(true);
 
     const location = useLocation();
     const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Select, Input, Form, Checkbox, Divider, message, Row, Col, Tooltip, Button } from 'antd';
-import { PlusCircleFilled, MinusCircleFilled, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { PlusCircleFilled, MinusCircleFilled, DeleteOutlined,  } from '@ant-design/icons';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -19,7 +19,6 @@ const FrontendConfig = (props) => {
     const [selectedFrontend, setSelectedFrontend] = useState({});
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [compression, setCompression] = useState([]);
-    const [Addfrontendplusbutton, setAddFrontendPlusButton] = useState(1);
 
     const [compressionAlgo, setCompressionAlgo] = useState('');
     // const [compressionTypes, setCompressionTypes] = useState(new Set());
@@ -30,7 +29,6 @@ const FrontendConfig = (props) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [checkedValues, setCheckedValues] = useState([]);
-    const [isReadyToSend, setIsReadyToSend] = useState(false);
     const containerRef = useRef(null);
 
     const [frontendConfigurations, setFrontendConfigurations] = useState([

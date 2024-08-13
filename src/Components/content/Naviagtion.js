@@ -22,7 +22,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../Global/GlobalContainer'
 import GlobalContainer from '../Global/GlobalContainer';
 import Default from '../Global/Default';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Link } from 'react-router-dom';
 import FrontendConfig from '../Global/Frontend';
 import Stats from '../Global/Stats';
 import Backend from '../Global/Backend';
@@ -33,7 +33,7 @@ import CurrentConfigView from "../Global/CurrentConfigView";
 import SubMenu from "antd/es/menu/SubMenu";
 import JournalLogs from "../Global/JournalLogs";
 import DeploymentHistory from "../Global/DeploymentHistory";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Naviagtion = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -42,7 +42,6 @@ const Naviagtion = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState("");
 
-  const location = useLocation();
   const navigate = useNavigate();
 
   const toggleSidebar = () => {
@@ -61,7 +60,7 @@ const Naviagtion = () => {
     };
   }, []);
 
-  const localStoragekey = localStorage.getItem('proToken')
+  // const localStoragekey = localStorage.getItem('proToken')
   const toggleNavbar = () => {
     setNavbarOpen(!isNavbarOpen);
   };

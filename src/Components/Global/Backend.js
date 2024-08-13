@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Input, Select, Card, List, Modal, message, Spin, Tooltip, Button, Form, Row, Col, Radio, Divider } from 'antd';
+import { Input, Select, Card, Modal, message,  Tooltip, Button, Form, Row, Col,  Divider } from 'antd';
 import {
     PlusCircleFilled,
     MinusCircleFilled,
     DeleteOutlined,
     DownOutlined,
     UpOutlined,
-    ExclamationCircleFilled,
-    DownloadOutlined,
-    EditOutlined
 
 } from '@ant-design/icons';
 import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 
-import { useMediaQuery } from 'react-responsive';
 
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
@@ -30,12 +26,11 @@ const Backend = () => {
     const [form] = Form.useForm();
     const [JsonData, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
-    const [fetchLoading, setFetchLoading] = useState(true);
-    const [formValues, setFormValues] = useState(null);
+    // const [fetchLoading, setFetchLoading] = useState(true);
+    // const [formValues, setFormValues] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
     const containerRef = useRef(null);
-    const isMobile = useMediaQuery({ maxWidth: 576 });
 
     useEffect(() => {
         const handleResize = () => {
@@ -80,9 +75,6 @@ const Backend = () => {
                 setLoadingFlag(false);
             });
     }, []);
-
-    // console.log("Jsondata?.data?.data?.maxconn", Jsondata)
-
 
 
     const handleNameChange = (value, index) => {

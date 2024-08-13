@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Dropdown } from "antd";
-import { Button, Form, Input, Select, Divider, message } from "antd";
-import { UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
+import { Button, Form, Input,  Divider, message } from "antd";
 
 // import '../CssFolder/StyleCss.css';
 import IpAddress from '../../IPConfig';
 import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 
 const Stats = (props) => {
     const IP = IpAddress();
@@ -14,7 +12,6 @@ const Stats = (props) => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [JsonData, setJsonData] = useState({});
     const [LoadingFlag, setLoadingFlag] = useState(false);
-    const [fetchLoading, setFetchLoading] = useState(true);
     const [form] = Form.useForm();
     const [enabled, setEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
@@ -22,7 +19,6 @@ const Stats = (props) => {
     const [bindport, setBindport] = useState('');
     const [urll, setUrll] = useState('');
 
-    const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
