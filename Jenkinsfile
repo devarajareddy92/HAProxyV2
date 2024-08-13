@@ -33,7 +33,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh 'docker build -t myapp:latest .'
+                    sh 'sudo docker build -t myapp:latest .'
                 }
             }
         }
@@ -42,11 +42,11 @@ pipeline {
                 script {
                     // Stop and remove the existing container if it exists
                     sh '''
-                    docker stop myapp || true
-                    docker rm myapp || true
+                    sudo docker stop myapp || true
+                    sudo docker rm myapp || true
                     '''
                     // Run the Docker container
-                    sh 'docker run -d -p 80:80 --name myapp myapp:latest'
+                    sh 'sudo docker run -d -p 80:80 --name myapp myapp:latest'
                 }
             }
         }
