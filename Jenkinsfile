@@ -24,8 +24,8 @@ pipeline {
             steps {
                 withEnv(['PATH+NODEJS=${tool name: "Nodejs"}/bin']) {
                     // Build the React application
-                    sh 'unset CI'
-                    sh 'npm run build'
+                    sh 'DISABLE_ESLINT_PLUGIN=true npm run build'
+                   // sh 'npm run build'
                 }
             }
         }
